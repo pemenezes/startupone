@@ -55,18 +55,14 @@ body {
 /* Helpers */
 .container {
   width: 100%;
-  max-width: 480px; /* Mobile App simulation width */
-  margin: 0 auto;
   min-height: 100vh;
   background-color: var(--bg-primary);
   position: relative;
   overflow-x: hidden;
-  box-shadow: var(--shadow-xl);
 }
 
 .desktop-container {
   width: 100%;
-  max-width: 100vw;
   min-height: 100vh;
   background-color: var(--bg-primary);
 }

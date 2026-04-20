@@ -1,8 +1,19 @@
+export const regions = [
+  { id: 'REG-01', name: 'Butantã', center: { lat: -23.56, lng: -46.72 }, activeVans: 5, status: 'stable' },
+  { id: 'REG-02', name: 'Pinheiros', center: { lat: -23.56, lng: -46.69 }, activeVans: 3, status: 'saturated' },
+  { id: 'REG-03', name: 'Centro', center: { lat: -23.55, lng: -46.63 }, activeVans: 8, status: 'stable' },
+];
+
 export const employeeUser = {
   name: 'Ana Silva',
   company: 'TechCorp S.A.',
   address: 'Rua das Flores, 123 - Centro',
-  credits: 350.00,
+  wallet: {
+    balance: 350.00,
+    currency: 'StartupCoin',
+    lastTopUp: '2026-04-10',
+  },
+  preferredRegion: 'REG-03',
   activeRoute: {
     id: 'RT-14',
     name: 'Linha Centro -> Zona Sul',
@@ -19,12 +30,38 @@ export const employeeUser = {
     { date: '28/03/2026', route: 'Linha Centro', status: 'Concluída' },
     { date: '27/03/2026', route: 'Linha Centro', status: 'Cancelada (Justificada)' },
   ],
-  penalties: { active: 0, warnings: 1 }
+  penalties: { 
+    noShows: 1, 
+    status: 'warning', // stable, warning, suspended
+    nextPenaltyAt: 3, // suspended after 3 no-shows
+  }
 };
 
 export const driverUser = {
   name: 'Carlos Roberto',
-  vehicle: 'Van ABC-1234',
+  photo: 'https://i.pravatar.cc/150?u=carlos',
+  vehicle: {
+    model: 'Mercedes Sprinter',
+    plate: 'ABC-1234',
+    photo: 'https://images.unsplash.com/photo-1530507629793-55579d776775?auto=format&fit=crop&w=400',
+    color: 'White',
+    capacity: 15,
+  },
+  rating: {
+    average: 4.8,
+    totalReviews: 124,
+  },
+  securityInfo: {
+    cpf: '***.456.***-01',
+    license: '123456789',
+    backgroundChecked: true,
+    verifiedSince: '2023-01-15',
+  },
+  currentRegion: 'REG-01',
+  penalties: {
+    level: 0, // 0: None, 1: Minor, 2: Medium, 3: Severe, 4: Very Severe
+    history: [],
+  },
   todayRoute: {
     id: 'RT-14',
     name: 'Linha Centro -> Zona Sul',

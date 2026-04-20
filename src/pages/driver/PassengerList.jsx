@@ -1,21 +1,29 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, UserCheck, UserX, UserMinus } from 'lucide-react';
-import { driverUser } from '../../data/mockData';
-
+import { useAppContext } from '../../AppContext';
+ 
 export default function PassengerList() {
   const navigate = useNavigate();
+  const { driver, updatePassengerStatus } = useAppContext();
+  
   const [passengers, setPassengers] = useState([
     { id: 1, name: 'Ana Silva', address: 'Praça Matriz', status: 'pending' },
     { id: 2, name: 'João Souza', address: 'Praça Matriz', status: 'pending' },
     { id: 3, name: 'Maria Elena', address: 'Av. Brasil, 440', status: 'pending' },
     { id: 4, name: 'Lucas', address: 'Rua 7 de Setembro, 12', status: 'missing' }
   ]);
-
+ 
   const updateStatus = (id, newStatus) => {
     setPassengers(passengers.map(p => p.id === id ? { ...p, status: newStatus } : p));
+    
+    // Find the stop and passenger name to update global state
+    const stop = driver.todayRoute.stops.find(s => s.passengers.some(pName => pName === passengers.find(p => p.id === id)?.name));
+    if (stop) {
+      updatePassengerStatus(stop.id, passengers.find(p => p.id === id).name, newStatus);
+    }
   };
-
+ 
   return (
     <div className="page-transition" style={{ paddingBottom: '2rem' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', paddingBottom: '1rem' }}>
@@ -24,13 +32,13 @@ export default function PassengerList() {
         </button>
         <h2 style={{ fontSize: '1.2rem', margin: 0 }}>Check-in de Passageiros</h2>
       </div>
-
+ 
       <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem', overflowX: 'auto', paddingBottom: '0.5rem' }}>
         <span style={{ backgroundColor: 'var(--bg-secondary)', padding: '0.25rem 0.75rem', borderRadius: 'var(--radius-xl)', fontSize: '0.8rem', whiteSpace: 'nowrap', border: '1px solid var(--border)' }}>Todos (4)</span>
         <span style={{ backgroundColor: 'var(--primary)', color: 'white', padding: '0.25rem 0.75rem', borderRadius: 'var(--radius-xl)', fontSize: '0.8rem', whiteSpace: 'nowrap' }}>Pendentes (3)</span>
         <span style={{ backgroundColor: 'var(--bg-secondary)', padding: '0.25rem 0.75rem', borderRadius: 'var(--radius-xl)', fontSize: '0.8rem', whiteSpace: 'nowrap', border: '1px solid var(--border)' }}>Embarcados (0)</span>
       </div>
-
+ 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
         {passengers.map(p => (
           <div key={p.id} className="card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem', borderLeft: p.status === 'checked' ? '4px solid var(--secondary)' : p.status === 'missing' ? '4px solid var(--danger)' : '1px solid var(--border)' }}>
@@ -64,7 +72,7 @@ export default function PassengerList() {
           </div>
         ))}
       </div>
-
+ 
     </div>
   );
 }

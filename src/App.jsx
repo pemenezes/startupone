@@ -13,7 +13,7 @@ function App() {
   return (
     <Router>
       <Routes>
-        {/* Raiz aponta para Splash */}
+        {/* Raiz aponta for Splash */}
         <Route path="/" element={<Splash />} />
         <Route path="/login" element={<Login />} />
         

@@ -1,7 +1,15 @@
 import React from 'react';
 import { Users, Truck, AlertTriangle, TrendingDown } from 'lucide-react';
-
+import { useAppContext } from '../../AppContext';
+ 
 export default function Dashboard() {
+  const { employees, driver, regions } = useAppContext();
+ 
+  // Dynamic calculations
+  const totalEmployees = employees.length;
+  const activeVans = regions.reduce((acc, reg) => acc + reg.activeVans, 0);
+  const avgOccupancy = 86; // Mocked as this requires detailed route tracking logic
+ 
   return (
     <div className="page-transition">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
@@ -14,14 +22,14 @@ export default function Dashboard() {
           <span style={{ fontSize: '0.9rem', color: 'var(--secondary)', fontWeight: 'bold' }}>Operação Normal</span>
         </div>
       </div>
-
+ 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1.5rem', marginBottom: '2.5rem' }}>
         <div className="card">
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem', color: 'var(--text-secondary)' }}>
             <span>Colaboradores Cadastrados</span>
             <Users size={20} />
           </div>
-          <h2 style={{ fontSize: '2rem', margin: 0 }}>1,248</h2>
+          <h2 style={{ fontSize: '2rem', margin: 0 }}>{totalEmployees}</h2>
           <p style={{ fontSize: '0.8rem', color: 'var(--secondary)', margin: 0 }}>+12 este mês</p>
         </div>
         
@@ -30,29 +38,29 @@ export default function Dashboard() {
             <span>Ocupação Média Total</span>
             <TrendingDown size={20} />
           </div>
-          <h2 style={{ fontSize: '2rem', margin: 0 }}>86%</h2>
+          <h2 style={{ fontSize: '2rem', margin: 0 }}>{avgOccupancy}%</h2>
           <p style={{ fontSize: '0.8rem', color: 'var(--warning)', margin: 0 }}>-2% em relação a ontém</p>
         </div>
-
+ 
         <div className="card">
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem', color: 'var(--text-secondary)' }}>
             <span>Veículos em Rota Hoje</span>
             <Truck size={20} />
           </div>
-          <h2 style={{ fontSize: '2rem', margin: 0 }}>42</h2>
+          <h2 style={{ fontSize: '2rem', margin: 0 }}>{activeVans}</h2>
           <p style={{ fontSize: '0.8rem', color: 'var(--secondary)', margin: 0 }}>100% da frota ativa</p>
         </div>
-
+ 
         <div className="card">
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem', color: 'var(--text-secondary)' }}>
             <span>Ocorrências / Atrasos</span>
             <AlertTriangle size={20} />
           </div>
-          <h2 style={{ fontSize: '2rem', margin: 0 }}>3</h2>
-          <p style={{ fontSize: '0.8rem', color: 'var(--danger)', margin: 0 }}>Ação recomendada</p>
+          <h2 style={{ fontSize: '2rem', margin: 0 }}>{driver.penalties.level > 0 ? '1' : '0'}</h2>
+          <p style={{ fontSize: '0.8rem', color: 'var(--danger)', margin: 0 }}>{driver.penalties.level > 0 ? 'Ação recomendada' : 'Tudo sob controle'}</p>
         </div>
       </div>
-
+ 
       <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1.5rem' }}>
         <div className="card" style={{ padding: '0' }}>
           <div style={{ padding: '1.5rem', borderBottom: '1px solid var(--border)' }}>
@@ -71,24 +79,19 @@ export default function Dashboard() {
               </thead>
               <tbody>
                 <tr style={{ borderBottom: '1px solid var(--border)' }}>
-                  <td style={{ padding: '1rem 0' }}>RT-42</td>
-                  <td>Zona Norte {'->'} Fábrica</td>
-                  <td>15 LUGARES</td>
-                  <td style={{ color: 'var(--danger)', fontWeight: 'bold' }}>42% (6 Pessoas)</td>
+                  <td style={{ padding: '1rem 0' }}>{driver.todayRoute.id}</td>
+                  <td>{driver.todayRoute.name}</td>
+                  <td>{driver.vehicle.capacity} LUGARES</td>
+                  <td style={{ color: 'var(--secondary)', fontWeight: 'bold' }}>
+                    {Math.round((driver.todayRoute.checkedIn / driver.todayRoute.passengersTotal) * 100)}%
+                  </td>
                   <td><button className="btn btn-outline" style={{ padding: '0.4rem 1rem', fontSize: '0.8rem' }}>Reotimizar</button></td>
-                </tr>
-                <tr>
-                  <td style={{ padding: '1rem 0' }}>RT-12</td>
-                  <td>Terminal Leste {'->'} Matriz</td>
-                  <td>20 LUGARES</td>
-                  <td style={{ color: 'var(--warning)', fontWeight: 'bold' }}>60% (12 Pessoas)</td>
-                  <td><button className="btn btn-outline" style={{ padding: '0.4rem 1rem', fontSize: '0.8rem' }}>Unificar</button></td>
                 </tr>
               </tbody>
             </table>
           </div>
         </div>
-
+ 
         <div className="card">
           <h3 style={{ marginBottom: '1rem' }}>Economia vs. VT</h3>
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '1rem' }}>

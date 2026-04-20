@@ -1,9 +1,13 @@
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import { Routes, Route, useNavigate } from 'react-router-dom';
 import BottomNav from '../../components/BottomNav';
-import HomeDriver from './HomeDriver';
-import PassengerList from './PassengerList';
-import MapNavigation from './MapNavigation';
+
+// Lazy Load components to isolate module evaluation
+const HomeDriver = lazy(() => import('./HomeDriver'));
+const PassengerList = lazy(() => import('./PassengerList'));
+const MapNavigation = lazy(() => import('./MapNavigation'));
+const DriverStatus = lazy(() => import('./DriverStatus'));
+const RegionRequest = lazy(() => import('./RegionRequest'));
 
 export default function DriverLayout() {
   const navigate = useNavigate();
@@ -22,16 +26,20 @@ export default function DriverLayout() {
         <h2 style={{ margin: 0, fontSize: '1.2rem' }}>Driver Panel</h2>
         <button onClick={() => navigate('/login')} style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer' }}>Sair</button>
       </header>
-
+ 
       <div style={{ padding: '1rem' }}>
-        <Routes>
-          <Route path="/" element={<HomeDriver />} />
-          <Route path="/passengers" element={<PassengerList />} />
-          <Route path="/map" element={<MapNavigation />} />
-          <Route path="*" element={<HomeDriver />} />
-        </Routes>
+        <Suspense fallback={<div style={{ textAlign: 'center', padding: '2rem' }}>Carregando...</div>}>
+          <Routes>
+            <Route path="/" element={<HomeDriver />} />
+            <Route path="/passengers" element={<PassengerList />} />
+            <Route path="/map" element={<MapNavigation />} />
+            <Route path="/status" element={<DriverStatus />} />
+            <Route path="/region-request" element={<RegionRequest />} />
+            <Route path="*" element={<HomeDriver />} />
+          </Routes>
+        </Suspense>
       </div>
-
+ 
       <BottomNav role="driver" />
     </div>
   );
