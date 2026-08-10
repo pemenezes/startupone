@@ -1,5 +1,6 @@
 import React, { Suspense, lazy } from 'react';
 import { Routes, Route, useNavigate } from 'react-router-dom';
+import { BusFront } from 'lucide-react';
 import BottomNav from '../../components/BottomNav';
 
 // Lazy Load components to isolate module evaluation
@@ -27,7 +28,7 @@ export default function EmployeeLayout() {
         borderBottomLeftRadius: 'var(--radius-lg)',
         borderBottomRightRadius: 'var(--radius-lg)'
       }}>
-        <h2 style={{ margin: 0, fontSize: '1.2rem' }}>MoveCorp</h2>
+        <BusFront size={28} strokeWidth={1.75} color="white" aria-label="MoveCorp" />
         <button onClick={() => navigate('/login')} style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer' }}>Sair</button>
       </header>
  

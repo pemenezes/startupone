@@ -34,7 +34,36 @@ export const employeeUser = {
     noShows: 1, 
     status: 'warning', // stable, warning, suspended
     nextPenaltyAt: 3, // suspended after 3 no-shows
-  }
+  },
+  suggestedRoutes: [
+    {
+      id: 'RT-21',
+      name: 'Linha Centro Express',
+      boardingStop: 'Estação da Luz',
+      estimatedArrival: '18:05',
+      etaMinutes: 8,
+      occupancy: 62,
+      matchScore: 96,
+    },
+    {
+      id: 'RT-08',
+      name: 'Linha Pinheiros -> Sul',
+      boardingStop: 'Rua Augusta, 200',
+      estimatedArrival: '18:20',
+      etaMinutes: 18,
+      occupancy: 74,
+      matchScore: 88,
+    },
+    {
+      id: 'RT-33',
+      name: 'Linha Butantã Circuito',
+      boardingStop: 'Av. Rebouças, 1100',
+      estimatedArrival: '18:30',
+      etaMinutes: 25,
+      occupancy: 51,
+      matchScore: 81,
+    },
+  ],
 };
 
 export const driverUser = {
