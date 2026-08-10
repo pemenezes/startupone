@@ -32,7 +32,7 @@ export default function Splash() {
           />
         </div>
         <h1 style={{ fontSize: '2.5rem', margin: 0, color: 'white', letterSpacing: '-0.05em' }}>MoveCorp</h1>
-        <p style={{ marginTop: '0.5rem', opacity: 0.9, fontSize: '1.1rem' }}>Mobilidade Inteligente</p>
+        <p style={{ marginTop: '0.5rem', fontSize: '1.1rem', color: 'var(--warning)',fontWeight: 500,}}>Mobilidade Inteligente</p>
       </div>
     </div>
   );
