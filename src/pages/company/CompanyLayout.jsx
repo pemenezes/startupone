@@ -1,6 +1,7 @@
 import React, { Suspense, lazy } from 'react';
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { LayoutDashboard, Users, Map, Calculator, LogOut, CreditCard } from 'lucide-react';
+import { useAuth } from '../../AuthContext';
 
 // Lazy Load components to isolate module evaluation
 const Dashboard = lazy(() => import('./Dashboard'));
@@ -12,7 +13,13 @@ const CompanyCredits = lazy(() => import('./CompanyCredits'));
 export default function CompanyLayout() {
   const navigate = useNavigate();
   const location = useLocation();
- 
+  const { signOut } = useAuth();
+
+  const handleLogout = async () => {
+    await signOut();
+    navigate('/login', { replace: true });
+  };
+
   const menuItems = [
     { label: 'Visão Geral', path: '/company', icon: <LayoutDashboard size={20} /> },
     { label: 'Rotas Operacionais', path: '/company/routes', icon: <Map size={20} /> },
@@ -72,7 +79,7 @@ export default function CompanyLayout() {
  
         <div style={{ padding: '2rem', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
           <button 
-            onClick={() => navigate('/login')}
+            onClick={handleLogout}
             style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '1rem', padding: '1rem', background: 'none', border: 'none', color: '#fca5a5', cursor: 'pointer', textAlign: 'left' }}
           >
             <LogOut size={20} />

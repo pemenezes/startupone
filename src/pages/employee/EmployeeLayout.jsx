@@ -2,6 +2,7 @@ import React, { Suspense, lazy } from 'react';
 import { Routes, Route, useNavigate } from 'react-router-dom';
 import { BusFront } from 'lucide-react';
 import BottomNav from '../../components/BottomNav';
+import { useAuth } from '../../AuthContext';
 
 // Lazy Load components to isolate module evaluation
 const HomeEmployee = lazy(() => import('./HomeEmployee'));
@@ -15,7 +16,13 @@ const AlternativeTransport = lazy(() => import('./AlternativeTransport'));
 
 export default function EmployeeLayout() {
   const navigate = useNavigate();
-  
+  const { signOut } = useAuth();
+
+  const handleLogout = async () => {
+    await signOut();
+    navigate('/login', { replace: true });
+  };
+
   return (
     <div className="container" style={{ paddingBottom: '80px' }}>
       <header style={{ 
@@ -29,7 +36,7 @@ export default function EmployeeLayout() {
         borderBottomRightRadius: 'var(--radius-lg)'
       }}>
         <BusFront size={28} strokeWidth={1.75} color="white" aria-label="MoveCorp" />
-        <button onClick={() => navigate('/login')} style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer' }}>Sair</button>
+        <button onClick={handleLogout} style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer' }}>Sair</button>
       </header>
  
       <div style={{ padding: '1rem' }}>

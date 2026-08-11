@@ -40,7 +40,7 @@ export default function Login() {
         <button
           type="button"
           className="login-role-card login-role-card--employee"
-          onClick={() => navigate('/employee')}
+          onClick={() => navigate('/login/employee')}
         >
           <div className="login-role-icon" style={{ backgroundColor: 'var(--primary-light)' }}>
             <User size={28} color="var(--primary)" />
@@ -54,7 +54,7 @@ export default function Login() {
         <button
           type="button"
           className="login-role-card login-role-card--driver"
-          onClick={() => navigate('/driver')}
+          onClick={() => navigate('/login/driver')}
         >
           <div className="login-role-icon" style={{ backgroundColor: '#f0fdf4' }}>
             <Car size={28} color="var(--secondary)" />
@@ -68,7 +68,7 @@ export default function Login() {
         <button
           type="button"
           className="login-role-card login-role-card--admin"
-          onClick={() => navigate('/company')}
+          onClick={() => navigate('/login/company')}
         >
           <div className="login-role-icon" style={{ backgroundColor: 'var(--bg-dark-secondary)' }}>
             <Building2 size={28} color="white" />
