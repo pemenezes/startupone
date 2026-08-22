@@ -1,0 +1,17 @@
+{
+  "name": "MoveCorp (startupone)",
+  "install": "npm install",
+  "terminals": [
+    {
+      "name": "vite-dev",
+      "command": "npm run dev",
+      "description": "Vite dev server for the MoveCorp React app (http://localhost:5173)."
+    }
+  ],
+  "ports": [
+    {
+      "name": "vite-dev",
+      "port": 5173
+    }
+  ]
+}
