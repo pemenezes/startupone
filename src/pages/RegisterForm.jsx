@@ -1,55 +1,73 @@
 import React, { useState } from 'react';
 import { useNavigate, useParams, Link, Navigate } from 'react-router-dom';
-import { ArrowLeft, BusFront, Building2, User, Car } from 'lucide-react';
-import { useAuth, ROLE_BY_LOGIN_PATH, HOME_BY_ROLE } from '../AuthContext';
+import { ArrowLeft, BusFront, User, Car } from 'lucide-react';
+import { useAuth, ROLE_BY_REGISTER_PATH, HOME_BY_ROLE } from '../AuthContext';
 
 const ROLE_UI = {
   employee: {
-    title: 'Entrar como Funcionário',
+    title: 'Cadastro de Funcionário',
     icon: User,
     accent: 'var(--primary)',
     iconBg: 'var(--primary-light)',
   },
   driver: {
-    title: 'Entrar como Motorista',
+    title: 'Cadastro de Motorista',
     icon: Car,
     accent: 'var(--secondary)',
     iconBg: '#f0fdf4',
   },
-  company: {
-    title: 'Entrar como Administrador',
-    icon: Building2,
-    accent: 'var(--bg-dark-secondary)',
-    iconBg: 'var(--bg-dark-secondary)',
-    iconColor: 'white',
-  },
 };
 
-export default function LoginForm() {
+export default function RegisterForm() {
   const { role: roleParam } = useParams();
   const navigate = useNavigate();
-  const { signIn } = useAuth();
+  const { signUp } = useAuth();
 
-  const expectedRole = ROLE_BY_LOGIN_PATH[roleParam];
+  const expectedRole = ROLE_BY_REGISTER_PATH[roleParam];
   const ui = ROLE_UI[roleParam];
 
+  const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
   if (!expectedRole || !ui) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/register" replace />;
   }
 
   const Icon = ui.icon;
 
+  const inputStyle = {
+    padding: '0.75rem 1rem',
+    borderRadius: 'var(--radius-md)',
+    border: '1px solid var(--border)',
+    fontSize: '1rem',
+    backgroundColor: 'white',
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-    setSubmitting(true);
+    setSuccess('');
 
-    const result = await signIn(email.trim(), password, expectedRole);
+    if (!fullName.trim()) {
+      setError('Informe seu nome completo.');
+      return;
+    }
+    if (password.length < 6) {
+      setError('A senha deve ter pelo menos 6 caracteres.');
+      return;
+    }
+    if (password !== confirmPassword) {
+      setError('As senhas não coincidem.');
+      return;
+    }
+
+    setSubmitting(true);
+    const result = await signUp(email.trim(), password, fullName.trim(), expectedRole);
     setSubmitting(false);
 
     if (result.error) {
@@ -57,7 +75,14 @@ export default function LoginForm() {
       return;
     }
 
-    navigate(HOME_BY_ROLE[result.profile.role], { replace: true });
+    if (result.needsConfirmation) {
+      setSuccess(
+        'Conta criada! Enviamos um e-mail de confirmação. Confirme seu e-mail e depois faça login.'
+      );
+      return;
+    }
+
+    navigate(HOME_BY_ROLE[expectedRole], { replace: true });
   };
 
   return (
@@ -73,7 +98,7 @@ export default function LoginForm() {
     >
       <div style={{ width: '100%', maxWidth: '380px', margin: '0 auto' }}>
         <Link
-          to="/login"
+          to="/register"
           style={{
             display: 'inline-flex',
             alignItems: 'center',
@@ -105,7 +130,7 @@ export default function LoginForm() {
               marginBottom: '1rem',
             }}
           >
-            <Icon size={28} color={ui.iconColor || ui.accent} />
+            <Icon size={28} color={ui.accent} />
           </div>
           <h1 style={{ fontSize: '1.5rem', marginBottom: '0.35rem' }}>{ui.title}</h1>
           <p
@@ -116,11 +141,23 @@ export default function LoginForm() {
               fontSize: '0.95rem',
             }}
           >
-            Digite seu e-mail e senha para continuar.
+            Preencha seus dados para criar sua conta.
           </p>
         </div>
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <label style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+            <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>Nome completo</span>
+            <input
+              type="text"
+              required
+              autoComplete="name"
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+              style={inputStyle}
+            />
+          </label>
+
           <label style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
             <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>E-mail</span>
             <input
@@ -129,13 +166,7 @@ export default function LoginForm() {
               autoComplete="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              style={{
-                padding: '0.75rem 1rem',
-                borderRadius: 'var(--radius-md)',
-                border: '1px solid var(--border)',
-                fontSize: '1rem',
-                backgroundColor: 'white',
-              }}
+              style={inputStyle}
             />
           </label>
 
@@ -144,16 +175,22 @@ export default function LoginForm() {
             <input
               type="password"
               required
-              autoComplete="current-password"
+              autoComplete="new-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              style={{
-                padding: '0.75rem 1rem',
-                borderRadius: 'var(--radius-md)',
-                border: '1px solid var(--border)',
-                fontSize: '1rem',
-                backgroundColor: 'white',
-              }}
+              style={inputStyle}
+            />
+          </label>
+
+          <label style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+            <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>Confirmar senha</span>
+            <input
+              type="password"
+              required
+              autoComplete="new-password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              style={inputStyle}
             />
           </label>
 
@@ -172,28 +209,44 @@ export default function LoginForm() {
             </div>
           )}
 
+          {success && (
+            <div
+              style={{
+                backgroundColor: '#f0fdf4',
+                color: '#15803d',
+                border: '1px solid #bbf7d0',
+                borderRadius: 'var(--radius-md)',
+                padding: '0.75rem 1rem',
+                fontSize: '0.85rem',
+              }}
+            >
+              {success}{' '}
+              <Link to={`/login/${roleParam}`} style={{ color: '#15803d', fontWeight: 700 }}>
+                Ir para o login
+              </Link>
+            </div>
+          )}
+
           <button
             type="submit"
             className="btn btn-primary"
-            disabled={submitting}
+            disabled={submitting || Boolean(success)}
             style={{
               marginTop: '0.5rem',
-              opacity: submitting ? 0.7 : 1,
+              opacity: submitting || success ? 0.7 : 1,
               cursor: submitting ? 'wait' : 'pointer',
             }}
           >
-            {submitting ? 'Entrando...' : 'Entrar'}
+            {submitting ? 'Criando conta...' : 'Cadastrar'}
           </button>
         </form>
 
-        {(roleParam === 'employee' || roleParam === 'driver') && (
-          <p style={{ textAlign: 'center', marginTop: '1.5rem', fontSize: '0.9rem' }}>
-            Não tem uma conta?{' '}
-            <Link to={`/register/${roleParam}`} style={{ color: 'var(--primary)', fontWeight: 600 }}>
-              Cadastre-se
-            </Link>
-          </p>
-        )}
+        <p style={{ textAlign: 'center', marginTop: '1.5rem', fontSize: '0.9rem' }}>
+          Já tem uma conta?{' '}
+          <Link to={`/login/${roleParam}`} style={{ color: 'var(--primary)', fontWeight: 600 }}>
+            Entrar
+          </Link>
+        </p>
       </div>
     </div>
   );
