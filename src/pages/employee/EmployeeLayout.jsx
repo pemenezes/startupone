@@ -3,6 +3,7 @@ import { Routes, Route, useNavigate } from 'react-router-dom';
 import { BusFront } from 'lucide-react';
 import BottomNav from '../../components/BottomNav';
 import { useAuth } from '../../AuthContext';
+import { useAppContext } from '../../AppContext';
 
 // Lazy Load components to isolate module evaluation
 const HomeEmployee = lazy(() => import('./HomeEmployee'));
@@ -16,7 +17,12 @@ const AlternativeTransport = lazy(() => import('./AlternativeTransport'));
 
 export default function EmployeeLayout() {
   const navigate = useNavigate();
-  const { signOut } = useAuth();
+  const { signOut, profile } = useAuth();
+  const { currentEmployee } = useAppContext();
+
+  const displayName =
+    profile?.full_name || currentEmployee?.name || '';
+  const firstName = displayName.trim().split(/\s+/)[0] || '';
 
   const handleLogout = async () => {
     await signOut();
@@ -35,7 +41,12 @@ export default function EmployeeLayout() {
         borderBottomLeftRadius: 'var(--radius-lg)',
         borderBottomRightRadius: 'var(--radius-lg)'
       }}>
-        <BusFront size={28} strokeWidth={1.75} color="white" aria-label="MoveCorp" />
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+          <BusFront size={28} strokeWidth={1.75} color="white" aria-label="MoveCorp" />
+          {firstName && (
+            <span style={{ fontSize: '0.95rem', fontWeight: 600 }}>{firstName}</span>
+          )}
+        </div>
         <button onClick={handleLogout} style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer' }}>Sair</button>
       </header>
  

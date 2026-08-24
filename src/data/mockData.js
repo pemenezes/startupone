@@ -5,6 +5,7 @@ export const regions = [
 ];
 
 export const employeeUser = {
+  id: 'E001',
   name: 'Ana Silva',
   company: 'TechCorp S.A.',
   address: 'Rua das Flores, 123 - Centro',

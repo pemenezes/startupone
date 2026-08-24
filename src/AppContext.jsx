@@ -1,81 +1,119 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 import { employeeUser as initialEmployee, driverUser as initialDriver, regions as initialRegions } from './data/mockData';
- 
+import { useAuth } from './AuthContext';
+
 const AppContext = createContext();
- 
+
+const seedEmployee = {
+  ...initialEmployee,
+  id: initialEmployee.id || 'E001',
+};
+
 export function AppProvider({ children }) {
-  // Use a list of employees instead of a single one
-  const [employees, setEmployees] = useState([initialEmployee]);
-  const [activeEmployeeId, setActiveEmployeeId] = useState(initialEmployee.id || 'E001');
+  const { profile } = useAuth();
+
+  const [employees, setEmployees] = useState([seedEmployee]);
+  const [activeEmployeeId, setActiveEmployeeId] = useState(seedEmployee.id);
   const [driver, setDriver] = useState(initialDriver);
   const [regions, setRegions] = useState(initialRegions);
- 
-  const currentEmployee = employees.find(e => e.id === activeEmployeeId) || employees[0];
- 
-  // --- Employee Actions ---
+
+  // Bridge Supabase profile → employee demo state (name / email / id)
+  useEffect(() => {
+    if (!profile || profile.role !== 'employee') return;
+
+    setEmployees((prev) => {
+      const template = prev[0] || seedEmployee;
+      return [
+        {
+          ...template,
+          id: profile.id,
+          name: profile.full_name || template.name,
+          email: profile.email || template.email,
+        },
+      ];
+    });
+    setActiveEmployeeId(profile.id);
+  }, [profile]);
+
+  const currentEmployee = employees.find((e) => e.id === activeEmployeeId) || employees[0];
+
   const updateWalletBalance = (employeeId, amount) => {
-    setEmployees(prev => prev.map(emp => 
-      emp.id === employeeId 
-        ? { ...emp, wallet: { ...emp.wallet, balance: emp.wallet.balance + amount, lastTopUp: new Date().toISOString().split('T')[0] } }
-        : emp
-    ));
+    setEmployees((prev) =>
+      prev.map((emp) =>
+        emp.id === employeeId
+          ? {
+              ...emp,
+              wallet: {
+                ...emp.wallet,
+                balance: emp.wallet.balance + amount,
+                lastTopUp: new Date().toISOString().split('T')[0],
+              },
+            }
+          : emp
+      )
+    );
   };
- 
+
   const recordNoShow = (employeeId) => {
-    setEmployees(prev => prev.map(emp => {
-      if (emp.id !== employeeId) return emp;
-      const newNoShows = emp.penalties.noShows + 1;
-      let newStatus = emp.penalties.status;
-      if (newNoShows >= emp.penalties.nextPenaltyAt) {
-        newStatus = 'suspended';
-      } else if (newNoShows > 0) {
-        newStatus = 'warning';
-      }
-      return {
-        ...emp,
-        penalties: { ...emp.penalties, noShows: newNoShows, status: newStatus }
-      };
-    }));
+    setEmployees((prev) =>
+      prev.map((emp) => {
+        if (emp.id !== employeeId) return emp;
+        const newNoShows = emp.penalties.noShows + 1;
+        let newStatus = emp.penalties.status;
+        if (newNoShows >= emp.penalties.nextPenaltyAt) {
+          newStatus = 'suspended';
+        } else if (newNoShows > 0) {
+          newStatus = 'warning';
+        }
+        return {
+          ...emp,
+          penalties: { ...emp.penalties, noShows: newNoShows, status: newStatus },
+        };
+      })
+    );
   };
- 
-  // --- Driver Actions ---
+
   const updatePassengerStatus = (stopId, passengerName, status) => {
-    setDriver(prev => ({
+    setDriver((prev) => ({
       ...prev,
       todayRoute: {
         ...prev.todayRoute,
-        stops: prev.todayRoute.stops.map(stop => 
-          stop.id === stopId 
-            ? { ...stop, status: stop.status === 'next' && status === 'checked' ? 'done' : stop.status } 
+        stops: prev.todayRoute.stops.map((stop) =>
+          stop.id === stopId
+            ? { ...stop, status: stop.status === 'next' && status === 'checked' ? 'done' : stop.status }
             : stop
-        )
-      }
+        ),
+      },
     }));
   };
- 
+
   const addDriverPenalty = (severity) => {
-    setDriver(prev => ({
+    setDriver((prev) => ({
       ...prev,
       penalties: {
         ...prev.penalties,
         level: Math.min(prev.penalties.level + 1, 4),
-        history: [...prev.penalties.history, { date: new Date().toLocaleDateString(), type: 'Infração de Rota', severity }]
-      }
+        history: [
+          ...prev.penalties.history,
+          { date: new Date().toLocaleDateString(), type: 'Infração de Rota', severity },
+        ],
+      },
     }));
   };
- 
-  // --- Company Actions ---
+
   const importEmployees = (newList) => {
-    setEmployees(prev => [...prev, ...newList]);
+    setEmployees((prev) => [...prev, ...newList]);
   };
- 
+
   const distributeCredits = (amount) => {
-    setEmployees(prev => prev.map(emp => ({
-      ...emp,
-      wallet: { ...emp.wallet, balance: emp.wallet.balance + amount }
-    })));
+    setEmployees((prev) =>
+      prev.map((emp) => ({
+        ...emp,
+        wallet: { ...emp.wallet, balance: emp.wallet.balance + amount },
+      }))
+    );
   };
- 
+
   const value = {
     employees,
     currentEmployee,
@@ -87,12 +125,12 @@ export function AppProvider({ children }) {
     updatePassengerStatus,
     addDriverPenalty,
     importEmployees,
-    distributeCredits
+    distributeCredits,
   };
- 
+
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 }
- 
+
 export function useAppContext() {
   const context = useContext(AppContext);
   if (!context) {

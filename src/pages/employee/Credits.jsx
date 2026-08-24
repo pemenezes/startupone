@@ -1,13 +1,16 @@
 import React, { useState } from 'react';
-import { CreditCard, ArrowRightLeft, Wallet, Ticket } from 'lucide-react';
-import { employeeUser } from '../../data/mockData';
+import { ArrowRightLeft, Wallet, Ticket } from 'lucide-react';
+import { useAppContext } from '../../AppContext';
 
 export default function Credits() {
+  const { currentEmployee, updateWalletBalance } = useAppContext();
+  const balance = currentEmployee.wallet.balance;
   const [exchangeAmount, setExchangeAmount] = useState(0);
 
   const handleExchange = () => {
-    if (exchangeAmount > 0 && exchangeAmount <= employeeUser.credits) {
-      alert(`Você trocou R$ ${exchangeAmount} de créditos MoveCorp por Vale-Transporte.`);
+    if (exchangeAmount > 0 && exchangeAmount <= balance) {
+      updateWalletBalance(currentEmployee.id, -exchangeAmount);
+      alert(`Você trocou R$ ${exchangeAmount.toFixed(2)} de créditos MoveCorp por Vale-Transporte.`);
       setExchangeAmount(0);
     } else {
       alert('Valor inválido.');
@@ -18,14 +21,27 @@ export default function Credits() {
     <div className="page-transition">
       <h1 style={{ fontSize: '1.5rem', marginBottom: '1.5rem' }}>Meus Créditos</h1>
 
-      <div className="card" style={{ backgroundColor: 'var(--primary)', color: 'white', border: 'none', marginBottom: '1.5rem', backgroundImage: 'linear-gradient(135deg, var(--primary) 0%, #1e3a8a 100%)' }}>
+      <div
+        className="card"
+        style={{
+          backgroundColor: 'var(--primary)',
+          color: 'white',
+          border: 'none',
+          marginBottom: '1.5rem',
+          backgroundImage: 'linear-gradient(135deg, var(--primary) 0%, #1e3a8a 100%)',
+        }}
+      >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
           <Wallet size={28} />
-          <span style={{ fontSize: '0.85rem', opacity: 0.8 }}>Saldo Mensal Disponível</span>
+          <span style={{ fontSize: '0.85rem', opacity: 0.8 }}>Saldo disponível</span>
         </div>
         <div>
-          <h2 style={{ fontSize: '2.5rem', margin: 0 }}>R$ {employeeUser.credits.toFixed(2)}</h2>
-          <p style={{ margin: 0, opacity: 0.8, fontSize: '0.9rem' }}>Válido até 31/03/2026</p>
+          <h2 style={{ fontSize: '2.5rem', margin: 0 }}>
+            {balance.toFixed(2)} <span style={{ fontSize: '1.2rem' }}>SC</span>
+          </h2>
+          <p style={{ margin: 0, opacity: 0.8, fontSize: '0.9rem' }}>
+            Conta de {currentEmployee.name}
+          </p>
         </div>
       </div>
 
@@ -38,25 +54,56 @@ export default function Credits() {
         </p>
 
         <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
-          <button className="btn btn-outline" style={{ padding: '0.5rem' }} onClick={() => setExchangeAmount(50)}>R$ 50</button>
-          <button className="btn btn-outline" style={{ padding: '0.5rem' }} onClick={() => setExchangeAmount(100)}>R$ 100</button>
-          <button className="btn btn-outline" style={{ padding: '0.5rem', backgroundColor: 'var(--primary-light)', border: '1px solid var(--primary)', color: 'var(--primary)' }}>
+          <button className="btn btn-outline" style={{ padding: '0.5rem' }} onClick={() => setExchangeAmount(50)}>
+            R$ 50
+          </button>
+          <button className="btn btn-outline" style={{ padding: '0.5rem' }} onClick={() => setExchangeAmount(100)}>
+            R$ 100
+          </button>
+          <button
+            className="btn btn-outline"
+            style={{
+              padding: '0.5rem',
+              backgroundColor: 'var(--primary-light)',
+              border: '1px solid var(--primary)',
+              color: 'var(--primary)',
+            }}
+            onClick={() => setExchangeAmount(Math.min(25, balance))}
+          >
             Personalizado
           </button>
         </div>
 
         <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
           <div style={{ position: 'relative', flex: 1 }}>
-            <span style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)' }}>R$</span>
-            <input 
-              type="number" 
+            <span
+              style={{
+                position: 'absolute',
+                left: '1rem',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                color: 'var(--text-secondary)',
+              }}
+            >
+              R$
+            </span>
+            <input
+              type="number"
               value={exchangeAmount}
               onChange={(e) => setExchangeAmount(Number(e.target.value))}
-              style={{ width: '100%', padding: '0.75rem', paddingLeft: '2.5rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)', fontSize: '1rem', boxSizing: 'border-box' }}
+              style={{
+                width: '100%',
+                padding: '0.75rem',
+                paddingLeft: '2.5rem',
+                borderRadius: 'var(--radius-md)',
+                border: '1px solid var(--border)',
+                fontSize: '1rem',
+                boxSizing: 'border-box',
+              }}
             />
           </div>
-          <button 
-            className="btn btn-primary" 
+          <button
+            className="btn btn-primary"
             style={{ width: 'auto', padding: '0.75rem 1rem' }}
             onClick={handleExchange}
           >
@@ -67,7 +114,6 @@ export default function Credits() {
 
       <h3>Histórico de Uso</h3>
       <div style={{ marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-        {/* Mock Histórico */}
         <div style={{ display: 'flex', justifyContent: 'space-between', padding: '1rem', borderBottom: '1px solid var(--border)' }}>
           <div>
             <p style={{ margin: 0, fontWeight: 'bold', fontSize: '0.9rem' }}>Fretado Diário</p>
