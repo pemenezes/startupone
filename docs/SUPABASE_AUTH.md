@@ -87,3 +87,46 @@ Replace the three UUIDs with the real ones from the dashboard.
 4. **Sair** signs out via Supabase  
 
 Role mapping: `company` login path → `admin` in the database.
+
+## 5. Self-registration
+
+Employees and drivers can create their own account (administrators are created
+separately — see below).
+
+### One-time setup: install the profile trigger
+
+The app creates the auth user with `supabase.auth.signUp`, but the matching
+`profiles` row is created by a database trigger. Install it once:
+
+Open [`handle_new_user_trigger.sql`](./handle_new_user_trigger.sql), paste the
+whole file into **Supabase → SQL Editor**, and click **Run**.
+
+This adds a `handle_new_user()` function + `on_auth_user_created` trigger that
+inserts into `profiles` using the signup metadata (`full_name`, `role`). No
+client-side INSERT policy is needed, and it works whether or not email
+confirmation is enabled.
+
+### Register flow
+
+1. `/register` — pick role (funcionário or motorista)
+2. `/register/employee` | `/register/driver` — name, email, senha, confirmar senha
+3. On submit, `signUp` sends `{ full_name, role }` as user metadata; the trigger
+   creates the `profiles` row.
+4. If email confirmation is **disabled** in your Supabase project, the user is
+   logged in immediately and sent to their dashboard. If it is **enabled**, the
+   app shows a "confirm your email" message and links to the login screen.
+
+### Creating administrators
+
+Admins are not self-registerable. With the trigger installed, create an admin by
+adding a user whose metadata includes the admin role — either:
+
+- Supabase → **Authentication → Users → Add user**, and set User Metadata to
+  `{ "full_name": "Name", "role": "admin" }`, or
+- the existing [`seed_example_users.sql`](./seed_example_users.sql) script.
+
+Note: once the trigger is installed, the manual `insert into public.profiles ...`
+statements in `seed_example_users.sql` become redundant (the trigger already
+creates each profile from metadata). They are harmless because the trigger uses
+`on conflict (id) do nothing`, but the role then comes from the user metadata
+(`raw_user_meta_data.role`), so make sure that metadata sets the intended role.

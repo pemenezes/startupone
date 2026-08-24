@@ -1,8 +1,8 @@
 import React from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Building2, User, Car, BusFront } from 'lucide-react';
+import { User, Car, BusFront } from 'lucide-react';
 
-export default function Login() {
+export default function Register() {
   const navigate = useNavigate();
 
   return (
@@ -23,7 +23,7 @@ export default function Login() {
           color="var(--primary)"
           style={{ marginBottom: '1rem' }}
         />
-        <h1 style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>Bem-vindo</h1>
+        <h1 style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>Criar conta</h1>
         <p
           style={{
             margin: 0,
@@ -32,7 +32,7 @@ export default function Login() {
             fontWeight: 500,
           }}
         >
-          Selecione seu perfil de acesso para continuar no MoveCorp.
+          Selecione como você quer se cadastrar no MoveCorp.
         </p>
       </div>
 
@@ -40,7 +40,7 @@ export default function Login() {
         <button
           type="button"
           className="login-role-card login-role-card--employee"
-          onClick={() => navigate('/login/employee')}
+          onClick={() => navigate('/register/employee')}
         >
           <div className="login-role-icon" style={{ backgroundColor: 'var(--primary-light)' }}>
             <User size={28} color="var(--primary)" />
@@ -54,7 +54,7 @@ export default function Login() {
         <button
           type="button"
           className="login-role-card login-role-card--driver"
-          onClick={() => navigate('/login/driver')}
+          onClick={() => navigate('/register/driver')}
         >
           <div className="login-role-icon" style={{ backgroundColor: '#f0fdf4' }}>
             <Car size={28} color="var(--secondary)" />
@@ -64,26 +64,12 @@ export default function Login() {
             <p style={{ margin: 0, fontSize: '0.9rem' }}>Gestão de rota diária</p>
           </div>
         </button>
-
-        <button
-          type="button"
-          className="login-role-card login-role-card--admin"
-          onClick={() => navigate('/login/company')}
-        >
-          <div className="login-role-icon" style={{ backgroundColor: 'var(--bg-dark-secondary)' }}>
-            <Building2 size={28} color="white" />
-          </div>
-          <div>
-            <h3 style={{ margin: 0, fontSize: '1.1rem' }}>Sou administrador</h3>
-            <p style={{ margin: 0, fontSize: '0.9rem' }}>Gestão de viagens e frotas</p>
-          </div>
-        </button>
       </div>
 
       <p style={{ textAlign: 'center', marginTop: '2rem', fontSize: '0.95rem' }}>
-        Não tem uma conta?{' '}
-        <Link to="/register" style={{ color: 'var(--primary)', fontWeight: 600 }}>
-          Cadastre-se
+        Já tem uma conta?{' '}
+        <Link to="/login" style={{ color: 'var(--primary)', fontWeight: 600 }}>
+          Entrar
         </Link>
       </p>
     </div>

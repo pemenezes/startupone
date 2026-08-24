@@ -10,6 +10,15 @@ export const ROLE_BY_LOGIN_PATH = {
   company: 'admin',
 };
 
+/**
+ * Roles allowed to self-register. Administrator accounts are created separately,
+ * so they are intentionally excluded here.
+ */
+export const ROLE_BY_REGISTER_PATH = {
+  employee: 'employee',
+  driver: 'driver',
+};
+
 export const HOME_BY_ROLE = {
   employee: '/employee',
   driver: '/driver',
@@ -120,6 +129,41 @@ export function AuthProvider({ children }) {
     return { error: null, profile: nextProfile };
   };
 
+  const signUp = async (email, password, fullName, role) => {
+    if (!ROLE_BY_REGISTER_PATH[role] && role !== 'employee' && role !== 'driver') {
+      return { error: 'Cadastro disponível apenas para funcionário ou motorista.' };
+    }
+
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      // The `handle_new_user` DB trigger reads this metadata to create the
+      // matching row in `profiles` (id, email, full_name, role).
+      options: { data: { full_name: fullName, role } },
+    });
+
+    if (error) {
+      return { error: error.message };
+    }
+
+    // When email confirmation is disabled, Supabase returns a live session and
+    // the user is logged in immediately. Otherwise `session` is null and the
+    // user must confirm their email before signing in.
+    if (data.session?.user) {
+      setSession(data.session);
+      try {
+        const nextProfile = await fetchProfile(data.session.user.id);
+        setProfile(nextProfile);
+        return { error: null, needsConfirmation: false, profile: nextProfile };
+      } catch (err) {
+        console.error('Failed to load profile after sign up', err);
+        return { error: null, needsConfirmation: false, profile: null };
+      }
+    }
+
+    return { error: null, needsConfirmation: true, profile: null };
+  };
+
   const signOut = async () => {
     await supabase.auth.signOut();
     setSession(null);
@@ -133,6 +177,7 @@ export function AuthProvider({ children }) {
     role: profile?.role ?? null,
     loading,
     signIn,
+    signUp,
     signOut,
     isAuthenticated: Boolean(session?.user),
   };
