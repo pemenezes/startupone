@@ -13,6 +13,9 @@ export const employeeUser = {
     currency: 'StartupCoin',
     lastTopUp: '2026-04-10',
   },
+  // Monthly corporate benefit balance (distinct from the StartupCoin wallet),
+  // used by the "Meus Créditos" page for Vale-Transporte conversion.
+  credits: 350.00,
   preferredRegion: 'REG-03',
   activeRoute: {
     id: 'RT-14',

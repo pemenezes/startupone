@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Wallet, PlusCircle, History, ArrowLeft, CreditCard } from 'lucide-react';
+import { Wallet, PlusCircle, History, ArrowLeft, CreditCard, Ticket, ChevronRight } from 'lucide-react';
 import { useAppContext } from '../../AppContext';
  
 export default function WalletPage() {
@@ -36,7 +36,37 @@ export default function WalletPage() {
         <h1 style={{ fontSize: '2.5rem', margin: '0.5rem 0' }}>{currentEmployee.wallet.balance.toFixed(2)} <span style={{ fontSize: '1.2rem' }}>SC</span></h1>
         <p style={{ fontSize: '0.8rem', opacity: 0.8 }}>Última recarga: {currentEmployee.wallet.lastTopUp}</p>
       </div>
- 
+
+      <button
+        type="button"
+        onClick={() => navigate('/employee/credits')}
+        className="card"
+        style={{
+          width: '100%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: '1rem',
+          padding: '1rem',
+          marginBottom: '2rem',
+          cursor: 'pointer',
+          textAlign: 'left',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <div style={{ backgroundColor: 'var(--primary-light)', padding: '0.5rem', borderRadius: '50%', color: 'var(--primary)', display: 'flex' }}>
+            <Ticket size={18} />
+          </div>
+          <div>
+            <p style={{ margin: 0, fontWeight: 'bold', fontSize: '0.9rem' }}>Meus Créditos</p>
+            <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+              Saldo mensal e conversão para Vale-Transporte
+            </p>
+          </div>
+        </div>
+        <ChevronRight size={20} color="var(--text-secondary)" />
+      </button>
+
       <h3 style={{ marginBottom: '1rem' }}>Recarregar Saldo</h3>
       <form onSubmit={handleTopUp} className="card" style={{ padding: '1.5rem', marginBottom: '2rem' }}>
         <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>

@@ -1,12 +1,16 @@
 import React, { useState } from 'react';
-import { CreditCard, ArrowRightLeft, Wallet, Ticket } from 'lucide-react';
-import { employeeUser } from '../../data/mockData';
+import { useNavigate } from 'react-router-dom';
+import { CreditCard, ArrowRightLeft, Wallet, Ticket, ArrowLeft } from 'lucide-react';
+import { useAppContext } from '../../AppContext';
 
 export default function Credits() {
+  const navigate = useNavigate();
+  const { currentEmployee } = useAppContext();
+  const credits = currentEmployee.credits ?? 0;
   const [exchangeAmount, setExchangeAmount] = useState(0);
 
   const handleExchange = () => {
-    if (exchangeAmount > 0 && exchangeAmount <= employeeUser.credits) {
+    if (exchangeAmount > 0 && exchangeAmount <= credits) {
       alert(`Você trocou R$ ${exchangeAmount} de créditos MoveCorp por Vale-Transporte.`);
       setExchangeAmount(0);
     } else {
@@ -16,6 +20,14 @@ export default function Credits() {
 
   return (
     <div className="page-transition">
+      <button
+        onClick={() => navigate(-1)}
+        className="btn btn-outline"
+        style={{ width: 'auto', marginBottom: '1.5rem', padding: '0.5rem 1rem', display: 'flex', gap: '0.5rem', alignItems: 'center' }}
+      >
+        <ArrowLeft size={18} /> Voltar
+      </button>
+
       <h1 style={{ fontSize: '1.5rem', marginBottom: '1.5rem' }}>Meus Créditos</h1>
 
       <div className="card" style={{ backgroundColor: 'var(--primary)', color: 'white', border: 'none', marginBottom: '1.5rem', backgroundImage: 'linear-gradient(135deg, var(--primary) 0%, #1e3a8a 100%)' }}>
@@ -24,7 +36,7 @@ export default function Credits() {
           <span style={{ fontSize: '0.85rem', opacity: 0.8 }}>Saldo Mensal Disponível</span>
         </div>
         <div>
-          <h2 style={{ fontSize: '2.5rem', margin: 0 }}>R$ {employeeUser.credits.toFixed(2)}</h2>
+          <h2 style={{ fontSize: '2.5rem', margin: 0 }}>R$ {credits.toFixed(2)}</h2>
           <p style={{ margin: 0, opacity: 0.8, fontSize: '0.9rem' }}>Válido até 31/03/2026</p>
         </div>
       </div>
