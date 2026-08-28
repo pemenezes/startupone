@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Wallet, PlusCircle, History, ArrowLeft, CreditCard } from 'lucide-react';
-import { useAppContext } from '../../AppContext';
+import { useAppContext } from '../../app-context';
  
 export default function WalletPage() {
   const navigate = useNavigate();

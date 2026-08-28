@@ -1,65 +1,32 @@
 import React from 'react';
+import { AlertCircle, ArrowLeft, CheckCircle, History, XCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { AlertCircle, CheckCircle, XCircle, ArrowLeft, History } from 'lucide-react';
-import { useAppContext } from '../../AppContext';
- 
+import { useAppContext } from '../../app-context';
+
 const penaltyLevels = [
-  { level: 0, label: 'Nenhum', description: 'Você está com a conta em dia!', color: 'var(--secondary)', icon: <CheckCircle size={24} /> },
-  { level: 1, label: 'Leve', description: 'Aviso formal. A próxima infração resultará em suspensão.', color: 'var(--warning)', icon: <AlertCircle size={24} /> },
-  { level: 2, label: 'Média', description: 'Conta suspensa por 1 dia.', color: 'var(--danger)', icon: <XCircle size={24} /> },
-  { level: 3, label: 'Grave', description: 'Conta suspensa por 1 semana.', color: 'var(--danger)', icon: <XCircle size={24} /> },
-  { level: 4, label: 'Muito Grave', description: 'Banimento permanente da plataforma.', color: 'black', icon: <XCircle size={24} /> },
+  { label: 'Regular', description: 'Sua conta está em dia.', color: 'var(--secondary)', Icon: CheckCircle },
+  { label: 'Atenção', description: 'Existe um aviso formal em acompanhamento.', color: 'var(--warning)', Icon: AlertCircle },
+  { label: 'Suspensão de 1 dia', description: 'Sua conta está temporariamente suspensa.', color: 'var(--danger)', Icon: XCircle },
+  { label: 'Suspensão de 1 semana', description: 'Procure a gestão responsável.', color: 'var(--danger)', Icon: XCircle },
+  { label: 'Bloqueado', description: 'O acesso operacional está bloqueado.', color: 'var(--bg-dark)', Icon: XCircle },
 ];
- 
+
 export default function DriverStatus() {
   const navigate = useNavigate();
   const { driver } = useAppContext();
-  const currentPenalty = penaltyLevels[driver.penalties.level];
- 
+  const current = penaltyLevels[driver.penalties.level] || penaltyLevels[0];
+  const StatusIcon = current.Icon;
+
   return (
     <div className="page-transition">
-      <button 
-        onClick={() => navigate(-1)} 
-        className="btn btn-outline" 
-        style={{ width: 'auto', marginBottom: '1.5rem', padding: '0.5rem 1rem', display: 'flex', gap: '0.5rem', alignItems: 'center' }}
-      >
-        <ArrowLeft size={18} /> Voltar
-      </button>
- 
-      <h2 style={{ marginBottom: '1.5rem' }}>Status de Conformidade</h2>
- 
-      <div className="card" style={{ textAlign: 'center', padding: '2rem 1.5rem', borderTop: `8px solid ${currentPenalty.color}` }}>
-        <div style={{ display: 'flex', justifyContent: 'center', color: currentPenalty.color, marginBottom: '1rem' }}>
-          {currentPenalty.icon}
-        </div>
-        <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '1.5rem' }}>Nível: {currentPenalty.label}</h3>
-        <p style={{ color: 'var(--text-secondary)', margin: 0 }}>{currentPenalty.description}</p>
-      </div>
- 
-      <div style={{ marginTop: '2rem' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
-          <History size={20} color="var(--text-secondary)" />
-          <h3 style={{ margin: 0, fontSize: '1.1rem' }}>Histórico de Infrações</h3>
-        </div>
-        
-        {driver.penalties.history.length === 0 ? (
-          <div className="card" style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: '2rem' }}>
-            Nenhuma infração registrada. Continue assim!
-          </div>
-        ) : (
-          driver.penalties.history.map((infraction, i) => (
-            <div key={i} className="card" style={{ marginBottom: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div>
-                <p style={{ margin: 0, fontWeight: 'bold' }}>{infraction.type}</p>
-                <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{infraction.date}</p>
-              </div>
-              <span style={{ fontSize: '0.8rem', backgroundColor: 'var(--bg-secondary)', padding: '0.2rem 0.5rem', borderRadius: '1rem' }}>
-                {infraction.severity}
-              </span>
-            </div>
-          ))
-        )}
-      </div>
+      <button className="back-link" type="button" onClick={() => navigate(-1)}><ArrowLeft size={18} /> Voltar</button>
+      <div className="section-heading"><div><span className="eyebrow">Segurança operacional</span><h1>Status de conformidade</h1><p>Acompanhe sua situação e o histórico de ocorrências.</p></div></div>
+      <article className="card compliance-card" style={{ borderTopColor: current.color }}>
+        <StatusIcon size={34} color={current.color} /><div><small>Nível atual</small><h2>{current.label}</h2><p>{current.description}</p></div>
+      </article>
+      <div className="section-title"><History size={20} /><h2>Histórico de infrações</h2></div>
+      {driver.penalties.history.length === 0 ? <div className="card empty-state"><CheckCircle size={32} color="var(--secondary)" /><strong>Nenhuma infração registrada</strong><span>Continue dirigindo com segurança.</span></div> : driver.penalties.history.map((item) => <article className="card history-row" key={`${item.date}-${item.type}`}><span><strong>{item.type}</strong><small>{item.date}</small></span><em>{item.severity}</em></article>)}
     </div>
   );
 }
+

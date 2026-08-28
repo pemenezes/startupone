@@ -1,30 +1,29 @@
 import React, { useState } from 'react';
 import { UploadCloud, Search, MoreVertical, ShieldAlert } from 'lucide-react';
-import { useAppContext } from '../../AppContext';
- 
+import { useAppContext } from '../../app-context';
+
 export default function CompanyEmployees() {
   const { employees, importEmployees } = useAppContext();
   const [searchTerm, setSearchTerm] = useState('');
   const [uploaded, setUploaded] = useState(false);
- 
-  const filtered = employees.filter(e => e.name.toLowerCase().includes(searchTerm.toLowerCase()));
- 
+
+  const filtered = employees.filter((employee) => employee.name.toLowerCase().includes(searchTerm.toLowerCase()));
+
   const handleUpload = () => {
     setUploaded(true);
     setTimeout(() => {
-      const newEmployees = [
-        { id: 'E101', name: 'Ricardo Lima', department: 'TI', route: 'Linha Centro', penalty: 0, credits: '350.00', wallet: { balance: 350, lastTopUp: '2026-04-20' }, penalties: { noShows: 0, status: 'stable', nextPenaltyAt: 3 } },
-        { id: 'E102', name: 'Beatriz Costa', department: 'Vendas', route: 'Zona Sul', penalty: 0, credits: '350.00', wallet: { balance: 350, lastTopUp: '2026-04-20' }, penalties: { noShows: 0, status: 'stable', nextPenaltyAt: 3 } },
-      ];
-      importEmployees(newEmployees);
-      alert("Planilha Excel: Novos colaboradores importados com sucesso!");
+      importEmployees([
+        { ...employees[0], id: 'E101', name: 'Ricardo Lima', department: 'Tecnologia', credits: 350, wallet: { ...employees[0].wallet, balance: 350 }, activeRoute: { ...employees[0].activeRoute, name: 'Linha Centro Express' }, penalties: { ...employees[0].penalties, warnings: 0, noShows: 0, status: 'stable' } },
+        { ...employees[0], id: 'E102', name: 'Beatriz Costa', department: 'Vendas', credits: 350, wallet: { ...employees[0].wallet, balance: 350 }, activeRoute: { ...employees[0].activeRoute, name: 'Linha Zona Sul' }, penalties: { ...employees[0].penalties, warnings: 0, noShows: 0, status: 'stable' } },
+      ]);
+      alert('Planilha processada: 2 novos colaboradores foram adicionados à demonstração.');
       setUploaded(false);
     }, 1500);
   };
- 
+
   return (
     <div className="page-transition">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+      <div className="company-page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
         <div>
           <h1 style={{ fontSize: '2rem', margin: 0 }}>Gestão de Funcionários</h1>
           <p style={{ color: 'var(--text-secondary)', margin: 0 }}>Adicione colaboradores e gerencie o benefício integral.</p>
@@ -38,7 +37,7 @@ export default function CompanyEmployees() {
           {uploaded ? 'Processando...' : 'Importar Planilha (XLSX / CSV)'}
         </button>
       </div>
- 
+
       <div className="card" style={{ marginBottom: '1.5rem', display: 'flex', gap: '1rem', alignItems: 'center', backgroundColor: 'var(--bg-secondary)' }}>
         <Search size={20} color="var(--text-secondary)" />
         <input 
@@ -49,8 +48,8 @@ export default function CompanyEmployees() {
           style={{ flex: 1, border: 'none', background: 'transparent', outline: 'none', fontSize: '1rem', color: 'var(--text-primary)' }}
         />
       </div>
- 
-      <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+
+      <div className="card table-scroll" style={{ padding: 0, overflow: 'auto' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
           <thead style={{ backgroundColor: '#f8fafc', borderBottom: '1px solid var(--border)' }}>
             <tr style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
@@ -68,19 +67,19 @@ export default function CompanyEmployees() {
                 <td style={{ padding: '1rem 1.5rem', fontSize: '0.9rem' }}>{emp.id}</td>
                 <td style={{ padding: '1rem 1.5rem' }}>
                   <p style={{ margin: 0, fontWeight: 'bold' }}>{emp.name}</p>
-                  <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{emp.department || 'N/A'}</p>
+                  <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{emp.department}</p>
                 </td>
                 <td style={{ padding: '1rem 1.5rem' }}>
                   <span style={{ backgroundColor: 'var(--primary-light)', color: 'var(--primary)', padding: '0.2rem 0.5rem', borderRadius: '1rem', fontSize: '0.8rem', fontWeight: 'bold' }}>
                     {emp.activeRoute?.name || 'Não alocado'}
                   </span>
                 </td>
-                <td style={{ padding: '1rem 1.5rem', fontWeight: 'bold', color: 'var(--secondary)' }}>R$ {emp.wallet?.balance.toFixed(2) || '0.00'}</td>
+                <td style={{ padding: '1rem 1.5rem', fontWeight: 'bold', color: 'var(--secondary)' }}>R$ {emp.wallet?.balance.toFixed(2).replace('.', ',') || '0,00'}</td>
                 <td style={{ padding: '1rem 1.5rem' }}>
-                  {emp.penalties?.noShows > 0 ? (
+                  {emp.penalties?.warnings > 0 ? (
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', color: 'var(--danger)', fontSize: '0.85rem', fontWeight: 'bold' }}>
                       <ShieldAlert size={16} />
-                      {emp.penalties.noShows} Advertência(s)
+                      {emp.penalties.warnings} Advertência(s)
                     </div>
                   ) : (
                     <span style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Ok</span>
@@ -107,3 +106,4 @@ export default function CompanyEmployees() {
     </div>
   );
 }
+

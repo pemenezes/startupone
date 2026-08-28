@@ -1,16 +1,13 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AlertOctagon, Info, CheckCircle2 } from 'lucide-react';
-import { useAppContext } from '../../AppContext';
+import { employeeUser } from '../../data/mockData';
 
 export default function CancelTrip() {
   const navigate = useNavigate();
-  const { currentEmployee, recordNoShow } = useAppContext();
-  const route = currentEmployee.activeRoute;
   const [confirmed, setConfirmed] = useState(false);
 
   const handleCancel = () => {
-    recordNoShow(currentEmployee.id);
     setConfirmed(true);
     setTimeout(() => {
       navigate('/employee');
@@ -19,18 +16,7 @@ export default function CancelTrip() {
 
   if (confirmed) {
     return (
-      <div
-        className="page-transition"
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          height: '100%',
-          textAlign: 'center',
-          marginTop: '4rem',
-        }}
-      >
+      <div className="page-transition" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', textAlign: 'center', marginTop: '4rem' }}>
         <CheckCircle2 size={64} color="var(--secondary)" style={{ marginBottom: '1rem' }} />
         <h2>Viagem Cancelada</h2>
         <p>Motorista notificado. A penalidade, se houver, foi aplicada à sua conta.</p>
@@ -48,9 +34,8 @@ export default function CancelTrip() {
           <div>
             <h3 style={{ margin: 0, color: 'var(--danger)', marginBottom: '0.25rem' }}>Atenção à Política</h3>
             <p style={{ margin: 0, fontSize: '0.85rem' }}>
-              Cancelamentos no <strong>mesmo dia</strong> da viagem ou faltas sem aviso prévio geram{' '}
-              <strong>Advertências</strong>. O acúmulo de advertências pode resultar na perda temporária do
-              benefício.
+              Cancelamentos no <strong>mesmo dia</strong> da viagem ou faltas sem aviso prévio geram <strong>Advertências</strong>.
+              O acúmulo de advertências pode resultar na perda temporária do benefício.
             </p>
           </div>
         </div>
@@ -58,26 +43,12 @@ export default function CancelTrip() {
 
       <div className="card" style={{ marginBottom: '1.5rem' }}>
         <h3>Detalhes da Rota</h3>
-        <p style={{ margin: '0.5rem 0', fontWeight: 'bold' }}>{route.name}</p>
-        <p style={{ margin: '0', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
-          Status: Hoje, {route.estimatedArrival}
-        </p>
-
-        <div
-          style={{
-            marginTop: '1rem',
-            padding: '0.75rem',
-            backgroundColor: 'var(--bg-primary)',
-            borderRadius: 'var(--radius-md)',
-            display: 'flex',
-            gap: '0.5rem',
-            alignItems: 'center',
-          }}
-        >
+        <p style={{ margin: '0.5rem 0', fontWeight: 'bold' }}>{employeeUser.activeRoute.name}</p>
+        <p style={{ margin: '0', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Status: Hoje, {employeeUser.activeRoute.estimatedArrival}</p>
+        
+        <div style={{ marginTop: '1rem', padding: '0.75rem', backgroundColor: 'var(--bg-primary)', borderRadius: 'var(--radius-md)', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
           <Info size={18} color="var(--warning)" />
-          <span style={{ fontSize: '0.85rem' }}>
-            Ao cancelar hoje, você receberá <strong>1 Advertência</strong>.
-          </span>
+          <span style={{ fontSize: '0.85rem' }}>Ao cancelar hoje, você receberá <strong>1 Advertência</strong>.</span>
         </div>
       </div>
 
@@ -90,3 +61,4 @@ export default function CancelTrip() {
     </div>
   );
 }
+

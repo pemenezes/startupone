@@ -1,29 +1,6 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { supabase } from './lib/supabase';
-
-const AuthContext = createContext(null);
-
-/** URL segment → profiles.role */
-export const ROLE_BY_LOGIN_PATH = {
-  employee: 'employee',
-  driver: 'driver',
-  company: 'admin',
-};
-
-/**
- * Roles allowed to self-register. Administrator accounts are created separately,
- * so they are intentionally excluded here.
- */
-export const ROLE_BY_REGISTER_PATH = {
-  employee: 'employee',
-  driver: 'driver',
-};
-
-export const HOME_BY_ROLE = {
-  employee: '/employee',
-  driver: '/driver',
-  admin: '/company',
-};
+import { AuthContext, ROLE_BY_REGISTER_PATH } from './auth-context';
 
 const ROLE_LABELS = {
   employee: 'funcionário',
@@ -183,12 +160,4 @@ export function AuthProvider({ children }) {
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-}
-
-export function useAuth() {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
 }
