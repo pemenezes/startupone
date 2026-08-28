@@ -55,14 +55,18 @@ body {
 /* Helpers */
 .container {
   width: 100%;
+  max-width: 480px; /* Mobile App simulation width */
+  margin: 0 auto;
   min-height: 100vh;
   background-color: var(--bg-primary);
   position: relative;
   overflow-x: hidden;
+  box-shadow: var(--shadow-xl);
 }
 
 .desktop-container {
   width: 100%;
+  max-width: 100vw;
   min-height: 100vh;
   background-color: var(--bg-primary);
 }
@@ -168,67 +172,196 @@ p {
   color: var(--primary);
 }
 
-.login-role-list{
-  display:flex;
+.login-role-list {
+  display: flex;
   flex-direction: column;
   gap: 1rem;
   width: 100%;
-  max-width: 340px;
-  margin: 0 auto;
+  max-width: 360px;
+  margin-inline: auto;
 }
 
-.login-role-card{
-  display:flex;
-  align-items:center;
+.login-role-card {
+  display: flex;
+  align-items: center;
   gap: 1rem;
   width: 100%;
+  padding: 1rem;
   text-align: left;
   cursor: pointer;
   border: 1px solid var(--border);
-  background-color: var(--bg-secondary);
-  border-radius: var(--radius--lg);
-  padding: 1rem;
+  border-radius: var(--radius-lg);
+  background: var(--bg-secondary);
   box-shadow: var(--shadow-sm);
-  transition: background-color var(--transition-normal),
-  border-color var(--transition-normal),
-  transform var(--transition-normal),
-  box-shadow var(--transition-normal),
-  color var(--transition-normal);
+  transition: color var(--transition-normal), background-color var(--transition-normal), border-color var(--transition-normal), transform var(--transition-normal), box-shadow var(--transition-normal);
 }
 
-.login-role-icon{
+.login-role-icon {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
   padding: 1rem;
   border-radius: var(--radius-md);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background-color var(--transition-normal);
 }
 
-.login-role-card:hover{
+.login-role-card:hover {
+  color: white;
   transform: translateY(-3px);
   box-shadow: var(--shadow-md);
-  color: white;
 }
 
 .login-role-card:hover h3,
-.login-role-card:hover p{
-  color: white;
+.login-role-card:hover p { color: white; }
+.login-role-card:hover .login-role-icon { background: rgb(255 255 255 / 0.2) !important; }
+.login-role-card--employee:hover { background: var(--primary); border-color: var(--primary); }
+.login-role-card--driver:hover { background: var(--secondary); border-color: var(--secondary); }
+.login-role-card--admin:hover { background: var(--bg-dark-secondary); border-color: var(--bg-dark-secondary); }
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0;
+  margin-bottom: 1.5rem;
+  color: var(--text-primary);
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
 }
 
-.login-role-card:hover .login-role-icon{
-  background-color: rgba(255,255,255,0.2);
+.eyebrow {
+  color: var(--primary);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
-.login-role-card--employee:hover {
-  background-color: var(--primary);
-  border-color: var(--primary);
+.section-heading { display: flex; justify-content: space-between; gap: 1rem; margin-bottom: 1.5rem; }
+.section-heading h1 { margin: 0.25rem 0; font-size: 1.6rem; }
+.section-heading p { margin: 0; color: var(--text-secondary); }
+.section-title { display: flex; align-items: center; gap: 0.5rem; margin: 1.5rem 0 1rem; }
+.section-title h2 { margin: 0; font-size: 1.1rem; }
+
+.quick-action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+.quick-action { display: flex; align-items: center; gap: 0.75rem; padding: 0.85rem; text-align: left; color: var(--text-primary); border: 1px solid var(--border); border-radius: var(--radius-md); background: white; cursor: pointer; }
+.quick-action svg { flex: 0 0 auto; color: var(--secondary); }
+.quick-action span { display: grid; }
+.quick-action small { color: var(--text-secondary); }
+
+.option-list { display: grid; gap: 0.75rem; }
+.option-card { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 1rem; }
+.option-card h3, .option-card p { margin: 0; }
+.option-card p { margin-block: 0.2rem; color: var(--text-secondary); font-size: 0.85rem; }
+.option-card__icon { display: grid; place-items: center; width: 48px; height: 48px; border-radius: var(--radius-md); background: var(--bg-primary); }
+.option-card > button { display: grid; place-items: center; width: 38px; height: 38px; color: var(--primary); border: 0; border-radius: 50%; background: var(--primary-light); cursor: pointer; }
+
+.profile-hero { padding: 1.5rem; text-align: center; }
+.profile-hero h1 { margin: 0.3rem 0; }
+.profile-hero__avatar { width: 96px; height: 96px; object-fit: cover; border: 4px solid var(--primary); border-radius: 50%; }
+.rating-line { display: flex; justify-content: center; align-items: center; gap: 0.3rem; color: var(--warning); }
+.rating-line span { color: var(--text-secondary); }
+.profile-detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-top: 1.5rem; text-align: left; }
+.profile-detail-grid > div { display: flex; align-items: flex-start; gap: 0.65rem; padding: 1rem; border-radius: var(--radius-md); background: var(--bg-primary); }
+.profile-detail-grid svg { color: var(--primary); }
+.profile-detail-grid span, .success-note span { display: grid; }
+.profile-detail-grid small, .success-note small { color: var(--text-secondary); }
+.vehicle-photo { width: 100%; max-height: 220px; margin-top: 1rem; object-fit: cover; border-radius: var(--radius-md); }
+.success-note { display: flex; align-items: center; gap: 0.75rem; margin-top: 1rem; padding: 1rem; text-align: left; color: #166534; border: 1px solid #bbf7d0; border-radius: var(--radius-md); background: #f0fdf4; }
+
+.compliance-card { display: flex; align-items: center; gap: 1rem; border-top: 6px solid; }
+.compliance-card h2, .compliance-card p { margin: 0.2rem 0 0; }
+.compliance-card p, .compliance-card small { color: var(--text-secondary); }
+.empty-state { display: flex; flex-direction: column; align-items: center; gap: 0.5rem; padding: 2rem; text-align: center; color: var(--text-secondary); }
+.history-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; }
+.history-row span { display: grid; }
+.history-row small { color: var(--text-secondary); }
+.history-row em { padding: 0.2rem 0.5rem; border-radius: 1rem; background: var(--bg-primary); font-size: 0.8rem; }
+
+.stacked-form { display: grid; gap: 1.25rem; }
+.stacked-form label { display: grid; gap: 0.5rem; font-weight: 700; }
+.stacked-form label > span { display: flex; align-items: center; gap: 0.5rem; }
+.stacked-form select, .stacked-form textarea { width: 100%; box-sizing: border-box; padding: 0.8rem; font: inherit; border: 1px solid var(--border); border-radius: var(--radius-md); background: white; }
+.stacked-form textarea { min-height: 120px; resize: vertical; }
+.stacked-form .btn { display: flex; justify-content: center; align-items: center; gap: 0.5rem; }
+.request-success { min-height: 60vh; justify-content: center; }
+
+@media (max-width: 560px) {
+  .quick-action-grid, .profile-detail-grid { grid-template-columns: 1fr; }
 }
-.login-role-card--driver:hover {
-  background-color: var(--secondary);
-  border-color: var(--secondary);
+
+.table-scroll { overflow-x: auto; }
+
+.header-actions { display: flex; align-items: center; gap: 0.4rem; }
+.header-action-button { display: grid; place-items: center; padding: 0.35rem; color: white; border: 0; border-radius: 50%; background: transparent; cursor: pointer; }
+.header-action-button:hover { background: rgb(255 255 255 / 0.16); }
+
+@media (max-width: 1180px) {
+  .company-sidebar { width: 220px !important; }
+  .company-content { width: calc(100% - 220px) !important; margin-left: 220px !important; padding: 1.25rem !important; }
+  .company-metric-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  .company-content-grid { grid-template-columns: 1fr !important; }
+  .company-credit-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
 }
-.login-role-card--admin:hover {
-  background-color: var(--bg-dark-secondary);
-  border-color: var(--bg-dark-secondary);
+
+@media (max-width: 760px) {
+  .company-shell { display: block !important; }
+  .company-sidebar { position: static !important; width: 100% !important; height: auto !important; }
+  .company-navigation { display: flex; gap: 0.5rem; padding: 0.75rem !important; overflow-x: auto; }
+  .company-navigation button { min-width: max-content; margin-bottom: 0 !important; }
+  .company-sidebar > div:last-child { padding: 0.75rem !important; }
+  .company-content { width: 100% !important; margin-left: 0 !important; padding: 1rem !important; }
+  .company-page-header { align-items: flex-start !important; flex-direction: column; gap: 1rem; }
+  .company-metric-grid, .company-credit-grid { grid-template-columns: 1fr !important; }
+}
+
+.employee-home { display: grid; gap: 1rem; padding-bottom: 1rem; }
+.employee-greeting { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+.employee-greeting h1, .employee-greeting p { margin: 0.2rem 0 0; }
+.employee-greeting p { color: var(--text-secondary); }
+.wallet-pill { display: flex; align-items: center; gap: 0.55rem; padding: 0.65rem 0.8rem; color: white; border: 0; border-radius: var(--radius-md); background: linear-gradient(135deg, var(--primary), #1e3a8a); cursor: pointer; }
+.wallet-pill span, .notice-card span { display: grid; text-align: left; }
+.wallet-pill small { opacity: 0.8; }
+.notice-card { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 0.75rem; padding: 0.9rem; border: 1px solid; border-radius: var(--radius-md); }
+.notice-card small { margin-top: 0.15rem; }
+.notice-card button { padding: 0; color: inherit; border: 0; background: transparent; font-weight: 700; cursor: pointer; }
+.notice-card--warning { color: #92400e; border-color: #fde68a; background: #fffbeb; }
+.notice-card--danger { color: #991b1b; border-color: #fecaca; background: #fef2f2; }
+.journey-card { display: grid; gap: 1rem; }
+.journey-card > header { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; }
+.journey-card h2, .journey-card small { margin: 0; }
+.journey-card small { color: var(--text-secondary); }
+.status-badge { padding: 0.25rem 0.6rem; border-radius: 1rem; font-size: 0.75rem; font-weight: 800; white-space: nowrap; }
+.status-badge--success { color: #047857; background: #d1fae5; }
+.status-badge--warning { color: #92400e; background: #fef3c7; }
+.journey-time { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; padding: 0.85rem; border-radius: var(--radius-md); background: var(--primary-light); }
+.journey-time span { display: grid; }
+.journey-time strong { font-size: 1.25rem; color: var(--primary); }
+.journey-details { display: grid; gap: 0.75rem; padding-block: 0.25rem; }
+.journey-details > span, .journey-details > button { display: grid; grid-template-columns: 24px 1fr auto; align-items: center; gap: 0.4rem; padding: 0; text-align: left; color: var(--text-primary); border: 0; background: transparent; }
+.journey-details > span svg, .journey-details > button > svg:first-child { grid-row: 1 / 3; color: var(--primary); }
+.journey-details > button { cursor: pointer; }
+.journey-details > button span { display: grid; }
+.journey-details strong { display: flex; align-items: center; gap: 0.2rem; }
+.journey-actions { display: grid; grid-template-columns: 1.5fr 1fr; gap: 0.65rem; }
+.journey-actions .btn { display: flex; justify-content: center; align-items: center; gap: 0.45rem; }
+.route-heading { align-items: center; margin: 0.5rem 0 0; }
+.route-heading h2 { margin: 0.2rem 0; }
+.route-suggestion-list { display: grid; gap: 0.75rem; }
+.route-suggestion { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 0.8rem; }
+.match-score { display: grid; place-items: center; min-width: 58px; color: var(--primary); }
+.match-score small { color: var(--text-secondary); }
+.route-suggestion__content h3, .route-suggestion__content p { margin: 0.15rem 0; }
+.route-suggestion__content p { display: flex; align-items: center; gap: 0.3rem; color: var(--text-secondary); font-size: 0.8rem; }
+.route-suggestion__content > small { color: var(--text-secondary); }
+.route-suggestion > button { display: grid; place-items: center; width: 36px; height: 36px; color: var(--primary); border: 0; border-radius: 50%; background: var(--primary-light); cursor: pointer; }
+
+@media (max-width: 560px) {
+  .employee-greeting { align-items: flex-start; }
+  .notice-card { grid-template-columns: auto 1fr; }
+  .notice-card button { grid-column: 2; justify-self: start; }
+  .journey-actions { grid-template-columns: 1fr; }
+  .route-suggestion { grid-template-columns: 1fr auto; }
+  .match-score { display: none; }
 }

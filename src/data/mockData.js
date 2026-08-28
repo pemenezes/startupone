@@ -7,11 +7,13 @@ export const regions = [
 export const employeeUser = {
   id: 'E001',
   name: 'Ana Silva',
+  department: 'Tecnologia',
   company: 'TechCorp S.A.',
   address: 'Rua das Flores, 123 - Centro',
+  credits: 350.00,
   wallet: {
     balance: 350.00,
-    currency: 'StartupCoin',
+    currency: 'MoveCoin',
     lastTopUp: '2026-04-10',
   },
   preferredRegion: 'REG-03',
@@ -31,39 +33,11 @@ export const employeeUser = {
     { date: '28/03/2026', route: 'Linha Centro', status: 'Concluída' },
     { date: '27/03/2026', route: 'Linha Centro', status: 'Cancelada (Justificada)' },
   ],
-  penalties: { 
-    noShows: 1, 
-    status: 'warning', // stable, warning, suspended
-    nextPenaltyAt: 3, // suspended after 3 no-shows
-  },
+  penalties: { active: 0, warnings: 1, noShows: 1, status: 'warning', nextPenaltyAt: 3 },
   suggestedRoutes: [
-    {
-      id: 'RT-21',
-      name: 'Linha Centro Express',
-      boardingStop: 'Estação da Luz',
-      estimatedArrival: '18:05',
-      etaMinutes: 8,
-      occupancy: 62,
-      matchScore: 96,
-    },
-    {
-      id: 'RT-08',
-      name: 'Linha Pinheiros -> Sul',
-      boardingStop: 'Rua Augusta, 200',
-      estimatedArrival: '18:20',
-      etaMinutes: 18,
-      occupancy: 74,
-      matchScore: 88,
-    },
-    {
-      id: 'RT-33',
-      name: 'Linha Butantã Circuito',
-      boardingStop: 'Av. Rebouças, 1100',
-      estimatedArrival: '18:30',
-      etaMinutes: 25,
-      occupancy: 51,
-      matchScore: 81,
-    },
+    { id: 'RT-21', name: 'Linha Centro Express', boardingStop: 'Estação da Luz', estimatedArrival: '18:05', etaMinutes: 8, occupancy: 62, matchScore: 96 },
+    { id: 'RT-08', name: 'Linha Pinheiros → Sul', boardingStop: 'Rua Augusta, 200', estimatedArrival: '18:20', etaMinutes: 18, occupancy: 74, matchScore: 88 },
+    { id: 'RT-33', name: 'Linha Butantã Circuito', boardingStop: 'Av. Rebouças, 1100', estimatedArrival: '18:30', etaMinutes: 25, occupancy: 51, matchScore: 81 },
   ],
 };
 
@@ -73,25 +47,20 @@ export const driverUser = {
   vehicle: {
     model: 'Mercedes Sprinter',
     plate: 'ABC-1234',
-    photo: 'https://images.unsplash.com/photo-1530507629793-55579d776775?auto=format&fit=crop&w=400',
-    color: 'White',
+    label: 'Van Mercedes Sprinter · ABC-1234',
+    photo: 'https://images.unsplash.com/photo-1530507629793-55579d776775?auto=format&fit=crop&w=800',
+    color: 'Branca',
     capacity: 15,
   },
-  rating: {
-    average: 4.8,
-    totalReviews: 124,
-  },
+  rating: { average: 4.8, totalReviews: 124 },
   securityInfo: {
     cpf: '***.456.***-01',
     license: '123456789',
     backgroundChecked: true,
-    verifiedSince: '2023-01-15',
+    verifiedSince: '15/01/2023',
   },
   currentRegion: 'REG-01',
-  penalties: {
-    level: 0, // 0: None, 1: Minor, 2: Medium, 3: Severe, 4: Very Severe
-    history: [],
-  },
+  penalties: { level: 0, history: [] },
   todayRoute: {
     id: 'RT-14',
     name: 'Linha Centro -> Zona Sul',
@@ -105,3 +74,4 @@ export const driverUser = {
     ]
   }
 };
+

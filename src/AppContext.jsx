@@ -1,117 +1,105 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import { employeeUser as initialEmployee, driverUser as initialDriver, regions as initialRegions } from './data/mockData';
-import { useAuth } from './AuthContext';
-
-const AppContext = createContext();
-
-const seedEmployee = {
-  ...initialEmployee,
-  id: initialEmployee.id || 'E001',
-};
+import React, { useState } from 'react';
+import { useAuth } from './auth-context';
+import { AppContext } from './app-context';
+import { driverUser as initialDriver, employeeUser as initialEmployee, regions as initialRegions } from './data/mockData';
 
 export function AppProvider({ children }) {
   const { profile } = useAuth();
+  const profileKey = `${profile?.id || 'demo'}:${profile?.role || 'guest'}`;
 
-  const [employees, setEmployees] = useState([seedEmployee]);
-  const [activeEmployeeId, setActiveEmployeeId] = useState(seedEmployee.id);
-  const [driver, setDriver] = useState(initialDriver);
-  const [regions, setRegions] = useState(initialRegions);
+  return <StatefulAppProvider key={profileKey} profile={profile}>{children}</StatefulAppProvider>;
+}
 
-  // Bridge Supabase profile → employee demo state (name / email / id)
-  useEffect(() => {
-    if (!profile || profile.role !== 'employee') return;
+function StatefulAppProvider({ children, profile }) {
+  const employeeSeed = profile?.role === 'employee'
+    ? {
+        ...initialEmployee,
+        id: profile.id,
+        name: profile.full_name || initialEmployee.name,
+        email: profile.email || initialEmployee.email,
+      }
+    : initialEmployee;
+  const driverSeed = profile?.role === 'driver'
+    ? {
+        ...initialDriver,
+        name: profile.full_name || initialDriver.name,
+        email: profile.email || initialDriver.email,
+      }
+    : initialDriver;
 
-    setEmployees((prev) => {
-      const template = prev[0] || seedEmployee;
-      return [
-        {
-          ...template,
-          id: profile.id,
-          name: profile.full_name || template.name,
-          email: profile.email || template.email,
-        },
-      ];
-    });
-    setActiveEmployeeId(profile.id);
-  }, [profile]);
+  const [employees, setEmployees] = useState([employeeSeed]);
+  const [activeEmployeeId, setActiveEmployeeId] = useState(employeeSeed.id);
+  const [driver, setDriver] = useState(driverSeed);
+  const [regions] = useState(initialRegions);
 
-  const currentEmployee = employees.find((e) => e.id === activeEmployeeId) || employees[0];
+  const currentEmployee = employees.find((employee) => employee.id === activeEmployeeId) || employees[0];
 
   const updateWalletBalance = (employeeId, amount) => {
-    setEmployees((prev) =>
-      prev.map((emp) =>
-        emp.id === employeeId
-          ? {
-              ...emp,
-              wallet: {
-                ...emp.wallet,
-                balance: emp.wallet.balance + amount,
-                lastTopUp: new Date().toISOString().split('T')[0],
-              },
-            }
-          : emp
-      )
-    );
+    setEmployees((current) => current.map((employee) => employee.id === employeeId
+      ? {
+          ...employee,
+          credits: employee.credits + amount,
+          wallet: {
+            ...employee.wallet,
+            balance: employee.wallet.balance + amount,
+            lastTopUp: new Date().toISOString().split('T')[0],
+          },
+        }
+      : employee));
   };
 
   const recordNoShow = (employeeId) => {
-    setEmployees((prev) =>
-      prev.map((emp) => {
-        if (emp.id !== employeeId) return emp;
-        const newNoShows = emp.penalties.noShows + 1;
-        let newStatus = emp.penalties.status;
-        if (newNoShows >= emp.penalties.nextPenaltyAt) {
-          newStatus = 'suspended';
-        } else if (newNoShows > 0) {
-          newStatus = 'warning';
-        }
-        return {
-          ...emp,
-          penalties: { ...emp.penalties, noShows: newNoShows, status: newStatus },
-        };
-      })
-    );
+    setEmployees((current) => current.map((employee) => {
+      if (employee.id !== employeeId) return employee;
+      const noShows = employee.penalties.noShows + 1;
+      return {
+        ...employee,
+        penalties: {
+          ...employee.penalties,
+          noShows,
+          warnings: noShows,
+          status: noShows >= employee.penalties.nextPenaltyAt ? 'suspended' : 'warning',
+        },
+      };
+    }));
   };
 
   const updatePassengerStatus = (stopId, passengerName, status) => {
-    setDriver((prev) => ({
-      ...prev,
+    setDriver((current) => ({
+      ...current,
       todayRoute: {
-        ...prev.todayRoute,
-        stops: prev.todayRoute.stops.map((stop) =>
-          stop.id === stopId
-            ? { ...stop, status: stop.status === 'next' && status === 'checked' ? 'done' : stop.status }
-            : stop
-        ),
+        ...current.todayRoute,
+        stops: current.todayRoute.stops.map((stop) => stop.id === stopId
+          ? { ...stop, passengerStatuses: { ...stop.passengerStatuses, [passengerName]: status } }
+          : stop),
       },
     }));
   };
 
   const addDriverPenalty = (severity) => {
-    setDriver((prev) => ({
-      ...prev,
+    setDriver((current) => ({
+      ...current,
       penalties: {
-        ...prev.penalties,
-        level: Math.min(prev.penalties.level + 1, 4),
-        history: [
-          ...prev.penalties.history,
-          { date: new Date().toLocaleDateString(), type: 'Infração de Rota', severity },
-        ],
+        ...current.penalties,
+        level: Math.min(current.penalties.level + 1, 4),
+        history: [...current.penalties.history, { date: new Date().toLocaleDateString('pt-BR'), type: 'Infração de rota', severity }],
       },
     }));
   };
 
-  const importEmployees = (newList) => {
-    setEmployees((prev) => [...prev, ...newList]);
+  const importEmployees = (newEmployees) => {
+    setEmployees((current) => {
+      const knownIds = new Set(current.map((employee) => employee.id));
+      return [...current, ...newEmployees.filter((employee) => !knownIds.has(employee.id))];
+    });
   };
 
   const distributeCredits = (amount) => {
-    setEmployees((prev) =>
-      prev.map((emp) => ({
-        ...emp,
-        wallet: { ...emp.wallet, balance: emp.wallet.balance + amount },
-      }))
-    );
+    setEmployees((current) => current.map((employee) => ({
+      ...employee,
+      credits: employee.credits + amount,
+      wallet: { ...employee.wallet, balance: employee.wallet.balance + amount },
+    })));
   };
 
   const value = {
@@ -129,12 +117,4 @@ export function AppProvider({ children }) {
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
-}
-
-export function useAppContext() {
-  const context = useContext(AppContext);
-  if (!context) {
-    throw new Error('useAppContext must be used within an AppProvider');
-  }
-  return context;
 }

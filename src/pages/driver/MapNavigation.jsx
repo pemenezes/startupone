@@ -2,13 +2,12 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Clock } from 'lucide-react';
 import { MapContainer, TileLayer, Marker, Polyline } from 'react-leaflet';
-import { useAppContext } from '../../AppContext';
+import { driverUser } from '../../data/mockData';
 import { VanIcon, PointIcon } from '../../components/MapMarkers';
 
 export default function MapNavigation() {
   const navigate = useNavigate();
-  const { driver } = useAppContext();
- 
+
   // Coordenadas mockadas para a Rota (São Paulo)
   const routeStops = [
     [-23.55052, -46.633308], // P1
@@ -18,9 +17,8 @@ export default function MapNavigation() {
   ];
   
   const vanLocation = [-23.55250, -46.635308]; // Atual
- 
-  return (
 
+  return (
     <div className="page-transition" style={{ height: 'calc(100vh - 180px)', display: 'flex', flexDirection: 'column' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', paddingBottom: '1rem' }}>
         <button onClick={() => navigate('/driver')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
@@ -63,13 +61,12 @@ export default function MapNavigation() {
         </MapContainer>
 
         {/* Floating Instruction */}
-            <div style={{ position: 'absolute', top: '1rem', left: '1rem', right: '1rem', backgroundColor: 'var(--secondary)', color: 'white', padding: '1rem', borderRadius: 'var(--radius-md)', boxShadow: 'var(--shadow-lg)', zIndex: 10 }}>
-              <h3 style={{ margin: 0, fontSize: '1.2rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                Siga na Av. Brasil
-              </h3>
-              <p style={{ margin: 0, fontSize: '0.85rem', opacity: 0.9 }}>Próxima parada: {driver.todayRoute.stops[1].address}</p>
-            </div>
-
+        <div style={{ position: 'absolute', top: '1rem', left: '1rem', right: '1rem', backgroundColor: 'var(--secondary)', color: 'white', padding: '1rem', borderRadius: 'var(--radius-md)', boxShadow: 'var(--shadow-lg)', zIndex: 10 }}>
+          <h3 style={{ margin: 0, fontSize: '1.2rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            Siga na Av. Brasil
+          </h3>
+          <p style={{ margin: 0, fontSize: '0.85rem', opacity: 0.9 }}>Próxima parada: {driverUser.todayRoute.stops[1].address}</p>
+        </div>
       </div>
 
       <div className="card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -85,3 +82,4 @@ export default function MapNavigation() {
     </div>
   );
 }
+
