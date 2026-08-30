@@ -79,7 +79,36 @@ values
 
 Replace the three UUIDs with the real ones from the dashboard.
 
-## 4. App flow
+## Drivers registry + reviews
+
+Run [`drivers_and_reviews.sql`](./drivers_and_reviews.sql) in the Supabase SQL Editor once.
+
+After that:
+
+1. Any user with `profiles.role = 'driver'` gets a row in `public.drivers` (backfill + trigger).
+2. Employees open **Avaliar motorista** and see **real** driver name + vehicle from the DB.
+3. Submitting a review inserts into `driver_reviews` and updates `rating_average` / `rating_count`.
+
+### Optional: set vehicle details for an existing driver
+
+```sql
+update public.drivers
+set
+  vehicle_model = 'Mercedes Sprinter',
+  vehicle_plate = 'ABC-1234',
+  vehicle_color = 'Branca',
+  vehicle_capacity = 15,
+  photo_url = 'https://i.pravatar.cc/150?u=driver1'
+where id = 'PASTE_DRIVER_USER_UUID';
+```
+
+Get the UUID from **Authentication → Users** (or `select id, email from profiles where role = 'driver';`).
+
+### App files
+
+- [`src/lib/drivers.js`](../src/lib/drivers.js) — fetch / submit
+- [`src/pages/employee/ReviewDriver.jsx`](../src/pages/employee/ReviewDriver.jsx) — UI
+
 
 1. `/login` — pick role  
 2. `/login/employee` | `/login/driver` | `/login/company` — email/password  
