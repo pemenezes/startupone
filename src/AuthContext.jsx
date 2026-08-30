@@ -11,7 +11,7 @@ const ROLE_LABELS = {
 async function fetchProfile(userId) {
   const { data, error } = await supabase
     .from('profiles')
-    .select('id, email, full_name, role')
+    .select('id, email, full_name, role, company_id, home_address, work_address')
     .eq('id', userId)
     .maybeSingle();
 
@@ -155,6 +155,14 @@ export function AuthProvider({ children }) {
     setProfile(null);
   };
 
+  const refreshProfile = async () => {
+    const userId = session?.user?.id;
+    if (!userId) return null;
+    const nextProfile = await fetchProfile(userId);
+    setProfile(nextProfile);
+    return nextProfile;
+  };
+
   const value = {
     session,
     user: session?.user ?? null,
@@ -164,6 +172,8 @@ export function AuthProvider({ children }) {
     signIn,
     signUp,
     signOut,
+    refreshProfile,
+    setProfile,
     isAuthenticated: Boolean(session?.user),
   };
 

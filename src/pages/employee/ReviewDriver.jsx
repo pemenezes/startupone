@@ -3,13 +3,15 @@ import { useNavigate } from 'react-router-dom';
 import { Star, Car, User, Loader2, AlertCircle } from 'lucide-react';
 import { useAppContext } from '../../app-context';
 import { useAuth } from '../../auth-context';
+import { useTrip } from '../../TripContext';
 import { fetchRegisteredDrivers, submitDriverReview } from '../../lib/drivers';
 
 export default function ReviewDriver() {
   const navigate = useNavigate();
   const { currentEmployee } = useAppContext();
   const { profile, user } = useAuth();
-  const route = currentEmployee.activeRoute;
+  const { activeTrip } = useTrip();
+  const route = activeTrip?.route || currentEmployee.activeRoute;
 
   const [drivers, setDrivers] = useState([]);
   const [selectedDriverId, setSelectedDriverId] = useState('');
@@ -33,8 +35,9 @@ export default function ReviewDriver() {
         setDrivers(list);
 
         const preferred =
-          list.find((d) => d.id === route.driverId) ||
-          list.find((d) => d.name.toLowerCase() === String(route.driver || '').toLowerCase()) ||
+          list.find((d) => d.id === route?.driver_id) ||
+          list.find((d) => d.id === route?.driver?.id) ||
+          list.find((d) => d.name.toLowerCase() === String(route?.driver?.name || route?.driver || '').toLowerCase()) ||
           list[0];
 
         setSelectedDriverId(preferred?.id || '');
@@ -54,7 +57,7 @@ export default function ReviewDriver() {
     return () => {
       cancelled = true;
     };
-  }, [route.driver, route.driverId]);
+  }, [route?.driver, route?.driver_id, route?.driver?.id, route?.driver?.name]);
 
   const selectedDriver = useMemo(
     () => drivers.find((d) => d.id === selectedDriverId) || null,
@@ -75,7 +78,7 @@ export default function ReviewDriver() {
         employeeId,
         rating,
         comment,
-        routeName: route.name,
+        routeName: route?.name,
       });
       setSubmitted(true);
       setTimeout(() => navigate('/employee'), 1600);

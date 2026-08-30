@@ -79,6 +79,21 @@ values
 
 Replace the three UUIDs with the real ones from the dashboard.
 
+## Employee onboarding + trips
+
+1. Run [`drivers_and_reviews.sql`](./drivers_and_reviews.sql) (if not done).
+2. Run [`employee_onboarding_and_trips.sql`](./employee_onboarding_and_trips.sql).
+
+Flow: login as employee → pick company → home/work addresses → choose route → home unlocks Acompanhar / Cancelar.
+
+Optional: link a driver to routes:
+
+```sql
+update public.routes
+set driver_id = 'PASTE_DRIVER_UUID'
+where name like 'Linha Centro%';
+```
+
 ## Drivers registry + reviews
 
 Run [`drivers_and_reviews.sql`](./drivers_and_reviews.sql) in the Supabase SQL Editor once.
