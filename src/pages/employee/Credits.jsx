@@ -1,50 +1,75 @@
-import React, { useState } from 'react';
-import { CreditCard, ArrowRightLeft, Wallet, Ticket, Plus } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { ArrowRightLeft, Wallet, Ticket, Plus } from 'lucide-react';
 import { useAppContext } from '../../app-context';
+import { useAuth } from '../../auth-context';
+import { fetchCreditTransactions } from '../../lib/credits';
 
 export default function Credits() {
   const { currentEmployee, updateWalletBalance } = useAppContext();
+  const { profile } = useAuth();
+  const employeeId = profile?.id || currentEmployee.id;
   const balance = currentEmployee.wallet.balance;
   const [exchangeAmount, setExchangeAmount] = useState(0);
   const [addAmount, setAddAmount] = useState(0);
-  
-  const [history, setHistory] = useState([
-    { id: 1, title: 'Fretado Diário', date: '28/03/2026', amount: -15, type: 'danger' },
-    { id: 2, title: 'Troca VT', date: '20/03/2026', amount: -50, type: 'danger' },
-    { id: 3, title: 'Recarga Empresa', date: '01/03/2026', amount: 415, type: 'secondary' }
-  ]);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+  const [history, setHistory] = useState([]);
 
-  const handleExchange = () => {
-    if (exchangeAmount > 0 && exchangeAmount <= balance) {
-      alert(`Você trocou R$ ${exchangeAmount} de créditos MoveCorp por Vale-Transporte.`);
-      updateWalletBalance(currentEmployee.id, -exchangeAmount);
-      setHistory(prev => [{
-        id: Date.now(),
-        title: 'Troca VT',
-        date: new Date().toLocaleDateString('pt-BR'),
-        amount: -exchangeAmount,
-        type: 'danger'
-      }, ...prev]);
-      setExchangeAmount(0);
-    } else {
-      alert('Valor inválido ou saldo insuficiente.');
+  const loadHistory = async () => {
+    if (!employeeId || !String(employeeId).includes('-')) return;
+    try {
+      const rows = await fetchCreditTransactions(employeeId);
+      setHistory(
+        rows.map((row) => ({
+          id: row.id,
+          title: row.title,
+          date: new Date(row.created_at).toLocaleDateString('pt-BR'),
+          amount: Number(row.amount),
+          type: Number(row.amount) >= 0 ? 'secondary' : 'danger',
+        }))
+      );
+    } catch (err) {
+      console.error(err);
     }
   };
 
-  const handleAddBalance = () => {
-    if (addAmount > 0) {
-      alert(`Você adicionou R$ ${addAmount} de saldo.`);
-      updateWalletBalance(currentEmployee.id, addAmount);
-      setHistory(prev => [{
-        id: Date.now(),
-        title: 'Adição de Saldo',
-        date: new Date().toLocaleDateString('pt-BR'),
-        amount: addAmount,
-        type: 'secondary'
-      }, ...prev]);
-      setAddAmount(0);
-    } else {
+  useEffect(() => {
+    loadHistory();
+  }, [employeeId, balance]);
+
+  const handleExchange = async () => {
+    if (exchangeAmount <= 0 || exchangeAmount > balance) {
+      alert('Valor inválido ou saldo insuficiente.');
+      return;
+    }
+    setBusy(true);
+    setError('');
+    try {
+      await updateWalletBalance(employeeId, -exchangeAmount, 'Troca VT');
+      setExchangeAmount(0);
+      await loadHistory();
+    } catch (err) {
+      setError(err.message || 'Falha ao converter créditos.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleAddBalance = async () => {
+    if (addAmount <= 0) {
       alert('Valor inválido.');
+      return;
+    }
+    setBusy(true);
+    setError('');
+    try {
+      await updateWalletBalance(employeeId, addAmount, 'Adição de saldo');
+      setAddAmount(0);
+      await loadHistory();
+    } catch (err) {
+      setError(err.message || 'Falha ao adicionar saldo.');
+    } finally {
+      setBusy(false);
     }
   };
 
@@ -52,50 +77,102 @@ export default function Credits() {
     <div className="page-transition">
       <h1 style={{ fontSize: '1.5rem', marginBottom: '1.5rem' }}>Meus Créditos</h1>
 
-      <div className="card" style={{ backgroundColor: 'var(--primary)', color: 'white', border: 'none', marginBottom: '1.5rem', backgroundImage: 'linear-gradient(135deg, var(--primary) 0%, #1e3a8a 100%)' }}>
+      <div
+        className="card"
+        style={{
+          backgroundColor: 'var(--primary)',
+          color: 'white',
+          border: 'none',
+          marginBottom: '1.5rem',
+          backgroundImage: 'linear-gradient(135deg, var(--primary) 0%, #1e3a8a 100%)',
+        }}
+      >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
           <Wallet size={28} />
-          <span style={{ fontSize: '0.85rem', opacity: 0.8 }}>Saldo Mensal Disponível</span>
+          <span style={{ fontSize: '0.85rem', opacity: 0.8 }}>Saldo disponível</span>
         </div>
         <div>
-          <h2 style={{ fontSize: '2.5rem', margin: 0 }}>R$ {balance.toFixed(2)}</h2>
-          <p style={{ margin: 0, opacity: 0.8, fontSize: '0.9rem' }}>Válido até 31/03/2026</p>
+          <h2 style={{ fontSize: '2.5rem', margin: 0 }}>
+            R$ {balance.toFixed(2).replace('.', ',')}
+          </h2>
+          <p style={{ margin: 0, opacity: 0.8, fontSize: '0.9rem' }}>
+            Conta de {profile?.full_name || currentEmployee.name}
+            {currentEmployee.wallet.lastTopUp
+              ? ` · última recarga ${currentEmployee.wallet.lastTopUp}`
+              : ''}
+          </p>
         </div>
       </div>
 
+      {error && (
+        <div
+          style={{
+            background: '#fef2f2',
+            color: '#b91c1c',
+            padding: '0.75rem',
+            borderRadius: 'var(--radius-md)',
+            marginBottom: '1rem',
+            fontSize: '0.85rem',
+          }}
+        >
+          {error}
+        </div>
+      )}
+
       <div className="card" style={{ marginBottom: '1.5rem' }}>
         <h3 style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <Plus size={18} color="var(--primary)" /> Adicionar Saldo
+          <Plus size={18} color="var(--primary)" /> Adicionar saldo
         </h3>
         <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '1rem' }}>
-          Adicione saldo extra à sua carteira usando seu método de pagamento preferido.
+          O valor é gravado na sua conta MoveCorp e permanece após atualizar a página.
         </p>
 
         <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
-          <button className="btn btn-outline" style={{ padding: '0.5rem' }} onClick={() => setAddAmount(20)}>R$ 20</button>
-          <button className="btn btn-outline" style={{ padding: '0.5rem' }} onClick={() => setAddAmount(50)}>R$ 50</button>
-          <button className="btn btn-outline" style={{ padding: '0.5rem', backgroundColor: 'var(--primary-light)', border: '1px solid var(--primary)', color: 'var(--primary)' }}>
-            Personalizado
+          <button className="btn btn-outline" type="button" style={{ padding: '0.5rem' }} onClick={() => setAddAmount(20)}>
+            R$ 20
+          </button>
+          <button className="btn btn-outline" type="button" style={{ padding: '0.5rem' }} onClick={() => setAddAmount(50)}>
+            R$ 50
           </button>
         </div>
 
         <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
           <div style={{ position: 'relative', flex: 1 }}>
-            <span style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)' }}>R$</span>
-            <input 
-              type="number" 
+            <span
+              style={{
+                position: 'absolute',
+                left: '1rem',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                color: 'var(--text-secondary)',
+              }}
+            >
+              R$
+            </span>
+            <input
+              type="number"
               value={addAmount === 0 ? '' : addAmount}
               onChange={(e) => setAddAmount(Number(e.target.value))}
               placeholder="0,00"
-              style={{ width: '100%', padding: '0.75rem', paddingLeft: '2.5rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)', fontSize: '1rem', boxSizing: 'border-box' }}
+              style={{
+                width: '100%',
+                padding: '0.75rem',
+                paddingLeft: '2.5rem',
+                borderRadius: 'var(--radius-md)',
+                border: '1px solid var(--border)',
+                fontSize: '1rem',
+                boxSizing: 'border-box',
+              }}
             />
           </div>
-          <button 
-            className="btn btn-primary" 
+          <button
+            className="btn btn-primary"
+            type="button"
             style={{ width: 'auto', padding: '0.75rem 1rem' }}
             onClick={handleAddBalance}
+            disabled={busy}
           >
-            Adicionar
+            {busy ? '...' : 'Adicionar'}
           </button>
         </div>
       </div>
@@ -105,42 +182,69 @@ export default function Credits() {
           <Ticket size={18} color="var(--primary)" /> Converter para VT
         </h3>
         <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '1rem' }}>
-          Você pode transferir parte dos seus créditos MoveCorp para o seu cartão Vale-Transporte padrão.
+          Transfere créditos MoveCorp para Vale-Transporte (débito persistente no saldo).
         </p>
 
         <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
-          <button className="btn btn-outline" style={{ padding: '0.5rem' }} onClick={() => setExchangeAmount(50)}>R$ 50</button>
-          <button className="btn btn-outline" style={{ padding: '0.5rem' }} onClick={() => setExchangeAmount(100)}>R$ 100</button>
-          <button className="btn btn-outline" style={{ padding: '0.5rem', backgroundColor: 'var(--primary-light)', border: '1px solid var(--primary)', color: 'var(--primary)' }}>
-            Personalizado
+          <button className="btn btn-outline" type="button" style={{ padding: '0.5rem' }} onClick={() => setExchangeAmount(50)}>
+            R$ 50
+          </button>
+          <button className="btn btn-outline" type="button" style={{ padding: '0.5rem' }} onClick={() => setExchangeAmount(100)}>
+            R$ 100
           </button>
         </div>
 
         <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
           <div style={{ position: 'relative', flex: 1 }}>
-            <span style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)' }}>R$</span>
-            <input 
-              type="number" 
+            <span
+              style={{
+                position: 'absolute',
+                left: '1rem',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                color: 'var(--text-secondary)',
+              }}
+            >
+              R$
+            </span>
+            <input
+              type="number"
               value={exchangeAmount === 0 ? '' : exchangeAmount}
               onChange={(e) => setExchangeAmount(Number(e.target.value))}
               placeholder="0,00"
-              style={{ width: '100%', padding: '0.75rem', paddingLeft: '2.5rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)', fontSize: '1rem', boxSizing: 'border-box' }}
+              style={{
+                width: '100%',
+                padding: '0.75rem',
+                paddingLeft: '2.5rem',
+                borderRadius: 'var(--radius-md)',
+                border: '1px solid var(--border)',
+                fontSize: '1rem',
+                boxSizing: 'border-box',
+              }}
             />
           </div>
-          <button 
-            className="btn btn-primary" 
+          <button
+            className="btn btn-primary"
+            type="button"
             style={{ width: 'auto', padding: '0.75rem 1rem' }}
             onClick={handleExchange}
+            disabled={busy}
           >
             <ArrowRightLeft size={18} />
           </button>
         </div>
       </div>
 
-      <h3>Histórico de Uso</h3>
+      <h3>Histórico de uso</h3>
       <div style={{ marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+        {!history.length && (
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Nenhuma movimentação ainda.</p>
+        )}
         {history.map((item) => (
-          <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '1rem', borderBottom: '1px solid var(--border)' }}>
+          <div
+            key={item.id}
+            style={{ display: 'flex', justifyContent: 'space-between', padding: '1rem', borderBottom: '1px solid var(--border)' }}
+          >
             <div>
               <p style={{ margin: 0, fontWeight: 'bold', fontSize: '0.9rem' }}>{item.title}</p>
               <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{item.date}</p>
@@ -154,4 +258,3 @@ export default function Credits() {
     </div>
   );
 }
-

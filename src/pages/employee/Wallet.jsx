@@ -8,14 +8,17 @@ export default function WalletPage() {
   const { currentEmployee, updateWalletBalance } = useAppContext();
   const [amount, setAmount] = useState('');
  
-  const handleTopUp = (e) => {
+  const handleTopUp = async (e) => {
     e.preventDefault();
     const val = parseFloat(amount);
     if (isNaN(val) || val <= 0) return;
-    
-    updateWalletBalance(currentEmployee.id, val);
-    alert(`Top-up of ${val} StartupCoins successful!`);
-    setAmount('');
+
+    try {
+      await updateWalletBalance(currentEmployee.id, val, 'Recarga de saldo');
+      setAmount('');
+    } catch (err) {
+      alert(err.message || 'Falha ao recarregar.');
+    }
   };
  
   return (

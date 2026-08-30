@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from './auth-context';
 import { AppContext } from './app-context';
 import { driverUser as initialDriver, employeeUser as initialEmployee, regions as initialRegions } from './data/mockData';
+import { adjustEmployeeCredits, fetchCreditBalance } from './lib/credits';
 
 const seedEmployee = {
   ...initialEmployee,
@@ -9,7 +10,7 @@ const seedEmployee = {
 };
 
 export function AppProvider({ children }) {
-  const { profile } = useAuth();
+  const { profile, refreshProfile } = useAuth();
 
   const [employees, setEmployees] = useState([seedEmployee]);
   const [activeEmployeeId, setActiveEmployeeId] = useState(seedEmployee.id);
@@ -17,17 +18,23 @@ export function AppProvider({ children }) {
   const [regions] = useState(initialRegions);
 
   // Sync logged-in profile into demo state without remounting the router tree.
-  // (A key={profile} remount was causing intermittent double-login.)
   useEffect(() => {
     if (!profile) return;
 
     if (profile.role === 'employee') {
+      const balance = Number(profile.credit_balance ?? seedEmployee.wallet.balance);
       setEmployees([
         {
           ...seedEmployee,
           id: profile.id,
           name: profile.full_name || seedEmployee.name,
           email: profile.email || seedEmployee.email,
+          credits: balance,
+          wallet: {
+            ...seedEmployee.wallet,
+            balance,
+            lastTopUp: profile.credit_last_top_up || seedEmployee.wallet.lastTopUp,
+          },
         },
       ]);
       setActiveEmployeeId(profile.id);
@@ -44,22 +51,54 @@ export function AppProvider({ children }) {
 
   const currentEmployee = employees.find((employee) => employee.id === activeEmployeeId) || employees[0];
 
-  const updateWalletBalance = (employeeId, amount) => {
+  const applyLocalBalance = (employeeId, balance, lastTopUp) => {
     setEmployees((current) =>
       current.map((employee) =>
         employee.id === employeeId
           ? {
               ...employee,
-              credits: (employee.credits ?? employee.wallet.balance) + amount,
+              credits: balance,
               wallet: {
                 ...employee.wallet,
-                balance: employee.wallet.balance + amount,
-                lastTopUp: new Date().toISOString().split('T')[0],
+                balance,
+                lastTopUp: lastTopUp || employee.wallet.lastTopUp,
               },
             }
           : employee
       )
     );
+  };
+
+  const updateWalletBalance = async (employeeId, amount, title) => {
+    // Persist for real logged-in employees (UUID from Supabase)
+    const isUuid = typeof employeeId === 'string' && employeeId.includes('-') && employeeId.length > 30;
+
+    if (isUuid) {
+      const result = await adjustEmployeeCredits(employeeId, amount, title);
+      applyLocalBalance(employeeId, result.balance, result.lastTopUp);
+      if (typeof refreshProfile === 'function') {
+        try {
+          await refreshProfile();
+        } catch {
+          /* local state already updated */
+        }
+      }
+      return result;
+    }
+
+    // Fallback for mock / offline demo ids
+    const employee = employees.find((e) => e.id === employeeId) || currentEmployee;
+    const next = Number(((employee?.wallet?.balance || 0) + amount).toFixed(2));
+    applyLocalBalance(employeeId, next, amount > 0 ? new Date().toISOString().slice(0, 10) : undefined);
+    return { balance: next };
+  };
+
+  const reloadWallet = async (employeeId) => {
+    const id = employeeId || activeEmployeeId;
+    if (!id || !String(id).includes('-')) return;
+    const data = await fetchCreditBalance(id);
+    applyLocalBalance(id, data.balance, data.lastTopUp);
+    return data;
   };
 
   const recordNoShow = (employeeId) => {
@@ -135,6 +174,7 @@ export function AppProvider({ children }) {
     driver,
     regions,
     updateWalletBalance,
+    reloadWallet,
     recordNoShow,
     updatePassengerStatus,
     addDriverPenalty,

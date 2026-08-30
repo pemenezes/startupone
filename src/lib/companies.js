@@ -21,7 +21,7 @@ export async function updateEmployeeOnboarding(userId, { companyId, homeAddress,
     .from('profiles')
     .update(patch)
     .eq('id', userId)
-    .select('id, email, full_name, role, company_id, home_address, work_address')
+    .select('id, email, full_name, role, company_id, home_address, work_address, credit_balance, credit_last_top_up')
     .single();
 
   if (error) throw error;

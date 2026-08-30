@@ -11,7 +11,9 @@ const ROLE_LABELS = {
 async function fetchProfile(userId) {
   const { data, error } = await supabase
     .from('profiles')
-    .select('id, email, full_name, role, company_id, home_address, work_address')
+    .select(
+      'id, email, full_name, role, company_id, home_address, work_address, credit_balance, credit_last_top_up'
+    )
     .eq('id', userId)
     .maybeSingle();
 

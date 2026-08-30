@@ -79,6 +79,15 @@ values
 
 Replace the three UUIDs with the real ones from the dashboard.
 
+## Persistent employee credits
+
+Run [`employee_credits.sql`](./employee_credits.sql).
+
+- `profiles.credit_balance` — saldo por funcionário  
+- `credit_transactions` — histórico (adição / troca VT / etc.)
+
+The Credits screen reads/writes these so the balance survives refresh and is per logged-in user.
+
 ## Employee onboarding + trips
 
 1. Run [`drivers_and_reviews.sql`](./drivers_and_reviews.sql) (if not done).
