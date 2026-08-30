@@ -51,20 +51,28 @@ export function AuthProvider({ children }) {
 
     init();
 
-    const { data: listener } = supabase.auth.onAuthStateChange(async (_event, nextSession) => {
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+      // Keep sync work out of the auth callback; async work here races with signIn navigate.
       setSession(nextSession);
-      if (nextSession?.user) {
-        try {
-          const nextProfile = await fetchProfile(nextSession.user.id);
+
+      if (!nextSession?.user) {
+        setProfile(null);
+        setLoading(false);
+        return;
+      }
+
+      // Don't clear an existing matching profile while we refresh (avoids ProtectedRoute bounce).
+      fetchProfile(nextSession.user.id)
+        .then((nextProfile) => {
           setProfile(nextProfile);
-        } catch (err) {
+        })
+        .catch((err) => {
           console.error('Failed to load profile', err);
           setProfile(null);
-        }
-      } else {
-        setProfile(null);
-      }
-      setLoading(false);
+        })
+        .finally(() => {
+          setLoading(false);
+        });
     });
 
     return () => {
