@@ -190,27 +190,14 @@ export default function ReviewDriver() {
 
       {selectedDriver && (
         <div className="card" style={{ marginBottom: '1.5rem', display: 'grid', gap: '0.85rem' }}>
-          <div style={{ display: 'flex', gap: '0.85rem', alignItems: 'center' }}>
-            <img
-              src={selectedDriver.photo}
-              alt={selectedDriver.name}
-              style={{
-                width: 64,
-                height: 64,
-                borderRadius: '50%',
-                objectFit: 'cover',
-                border: '3px solid var(--primary-light)',
-              }}
-            />
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                <User size={16} color="var(--primary)" />
-                <h2 style={{ margin: 0, fontSize: '1.15rem' }}>{selectedDriver.name}</h2>
-              </div>
-              <p style={{ margin: '0.2rem 0 0', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-                {selectedDriver.rating.average.toFixed(1)} ★ · {selectedDriver.rating.totalReviews} avaliações
-              </p>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+              <User size={16} color="var(--primary)" />
+              <h2 style={{ margin: 0, fontSize: '1.15rem' }}>{selectedDriver.name}</h2>
             </div>
+            <p style={{ margin: '0.35rem 0 0', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+              {selectedDriver.rating.average.toFixed(1)} ★ · {selectedDriver.rating.totalReviews} avaliações
+            </p>
           </div>
 
           <div

@@ -53,8 +53,8 @@ export default function TrackVan() {
           style={{ height: '100%', width: '100%', zIndex: 1 }}
         >
           <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>'
-            url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
           <Marker position={VAN_PLACEHOLDER} icon={VanIcon} />
           <Marker position={BOARDING_CENTER} icon={PointIcon} />
