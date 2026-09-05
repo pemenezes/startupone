@@ -93,8 +93,22 @@ export function AuthProvider({ children }) {
   }, []);
 
   const signIn = async (email, password, expectedRole) => {
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    const normalizedEmail = email.trim().toLowerCase();
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: normalizedEmail,
+      password,
+    });
     if (error) {
+      const msg = (error.message || '').toLowerCase();
+      if (msg.includes('invalid login credentials') || msg.includes('invalid credentials')) {
+        return {
+          error:
+            'E-mail ou senha incorretos. Confira se está no login certo (Funcionário / Motorista) e se a senha é a mais recente.',
+        };
+      }
+      if (msg.includes('email not confirmed')) {
+        return { error: 'Confirme seu e-mail antes de entrar (veja a caixa de entrada).' };
+      }
       return { error: error.message };
     }
 
@@ -116,8 +130,11 @@ export function AuthProvider({ children }) {
 
     if (nextProfile.role !== expectedRole) {
       await supabase.auth.signOut();
-      const label = ROLE_LABELS[expectedRole] || expectedRole;
-      return { error: `Este usuário não é ${label}.` };
+      const wanted = ROLE_LABELS[expectedRole] || expectedRole;
+      const actual = ROLE_LABELS[nextProfile.role] || nextProfile.role;
+      return {
+        error: `Esta conta é de ${actual}, não de ${wanted}. Volte e escolha o tipo de login correto.`,
+      };
     }
 
     setSession(data.session);
