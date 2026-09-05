@@ -63,15 +63,15 @@ export default function Credits() {
           backgroundImage: 'linear-gradient(135deg, var(--primary) 0%, #1e3a8a 100%)',
         }}
       >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-          <Wallet size={28} />
-          <span style={{ fontSize: '0.85rem', opacity: 0.8 }}>Saldo disponível</span>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', color: '#fff' }}>
+          <Wallet size={28} color="#fff" />
+          <span style={{ fontSize: '0.85rem', opacity: 0.85, color: '#fff' }}>Saldo disponível</span>
         </div>
         <div>
-          <h2 style={{ fontSize: '2.5rem', margin: 0 }}>
+          <h2 style={{ fontSize: '2.5rem', margin: 0, color: '#fff' }}>
             R$ {balance.toFixed(2).replace('.', ',')}
           </h2>
-          <p style={{ margin: 0, opacity: 0.8, fontSize: '0.9rem' }}>
+          <p style={{ margin: 0, opacity: 0.85, fontSize: '0.9rem', color: '#fff' }}>
             Conta de {profile?.full_name || currentEmployee.name}
             {currentEmployee.wallet.lastTopUp
               ? ` · última recarga ${currentEmployee.wallet.lastTopUp}`
