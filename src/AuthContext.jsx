@@ -53,9 +53,18 @@ export function AuthProvider({ children }) {
 
     init();
 
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+    const { data: listener } = supabase.auth.onAuthStateChange((event, nextSession) => {
       // Keep sync work out of the auth callback; async work here races with signIn navigate.
       setSession(nextSession);
+
+      // Recovery links sometimes land on Site URL instead of /reset-password.
+      if (event === 'PASSWORD_RECOVERY' && typeof window !== 'undefined') {
+        const path = window.location.pathname;
+        if (path !== '/reset-password') {
+          window.location.replace('/reset-password');
+          return;
+        }
+      }
 
       if (!nextSession?.user) {
         setProfile(null);
@@ -159,13 +168,17 @@ export function AuthProvider({ children }) {
 
   const requestPasswordReset = async (email, rolePath) => {
     const trimmed = email.trim();
-    const redirect = new URL('/reset-password', window.location.origin);
+    // Keep redirectTo exact (no query). Query strings often fail Redirect URL allow-lists.
     if (rolePath === 'employee' || rolePath === 'driver') {
-      redirect.searchParams.set('role', rolePath);
+      try {
+        sessionStorage.setItem('movecorp:reset-role', rolePath);
+      } catch {
+        /* ignore */
+      }
     }
 
     const { error } = await supabase.auth.resetPasswordForEmail(trimmed, {
-      redirectTo: redirect.toString(),
+      redirectTo: `${window.location.origin}/reset-password`,
     });
 
     if (error) {

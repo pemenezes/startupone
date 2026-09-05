@@ -4,18 +4,98 @@ import { ArrowLeft, BusFront, KeyRound } from 'lucide-react';
 import { useAuth } from '../auth-context';
 import { supabase } from '../lib/supabase';
 
+function readStoredRole(searchRole) {
+  if (searchRole === 'employee' || searchRole === 'driver') return searchRole;
+  try {
+    const stored = sessionStorage.getItem('movecorp:reset-role');
+    if (stored === 'employee' || stored === 'driver') return stored;
+  } catch {
+    /* ignore */
+  }
+  return null;
+}
+
+/**
+ * Turn whatever Supabase put in the URL into an auth session.
+ * Supports: ?code= (PKCE), #access_token (implicit), ?token_hash=&type= (OTP).
+ */
+async function establishSessionFromUrl() {
+  const url = new URL(window.location.href);
+  const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+
+  const errorDescription =
+    url.searchParams.get('error_description') || hashParams.get('error_description');
+  if (errorDescription) {
+    return { error: decodeURIComponent(errorDescription.replace(/\+/g, ' ')) };
+  }
+
+  const code = url.searchParams.get('code');
+  if (code) {
+    const { error } = await supabase.auth.exchangeCodeForSession(code);
+    if (error) return { error: error.message };
+    cleanupAuthParams(url);
+    return { error: null };
+  }
+
+  const tokenHash = url.searchParams.get('token_hash');
+  const type = url.searchParams.get('type') || hashParams.get('type');
+  if (tokenHash && type) {
+    const { error } = await supabase.auth.verifyOtp({
+      token_hash: tokenHash,
+      type,
+    });
+    if (error) return { error: error.message };
+    cleanupAuthParams(url);
+    return { error: null };
+  }
+
+  const accessToken = hashParams.get('access_token');
+  const refreshToken = hashParams.get('refresh_token');
+  if (accessToken && refreshToken) {
+    const { error } = await supabase.auth.setSession({
+      access_token: accessToken,
+      refresh_token: refreshToken,
+    });
+    if (error) return { error: error.message };
+    cleanupAuthParams(url);
+    return { error: null };
+  }
+
+  // Client may already have parsed the URL (detectSessionInUrl)
+  const { data } = await supabase.auth.getSession();
+  if (data.session?.user) {
+    return { error: null };
+  }
+
+  return { error: 'Link inválido ou expirado.' };
+}
+
+function cleanupAuthParams(url) {
+  url.searchParams.delete('code');
+  url.searchParams.delete('token_hash');
+  url.searchParams.delete('type');
+  url.searchParams.delete('error');
+  url.searchParams.delete('error_description');
+  url.searchParams.delete('error_code');
+  const clean = `${url.pathname}${url.search}`;
+  window.history.replaceState({}, document.title, clean || '/reset-password');
+}
+
 export default function ResetPassword() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const roleParam = searchParams.get('role');
+  const roleParam = readStoredRole(searchParams.get('role'));
   const loginPath =
     roleParam === 'employee' || roleParam === 'driver' ? `/login/${roleParam}` : '/login';
+  const forgotPath =
+    roleParam === 'driver' ? '/forgot-password/driver' : '/forgot-password/employee';
 
-  const { updatePassword, signOut, session, loading: authLoading } = useAuth();
+  const { updatePassword, signOut } = useAuth();
 
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
   const [error, setError] = useState('');
+  const [linkError, setLinkError] = useState('');
   const [ready, setReady] = useState(false);
   const [checking, setChecking] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -24,18 +104,42 @@ export default function ResetPassword() {
   useEffect(() => {
     let cancelled = false;
 
-    async function checkRecoverySession() {
-      const { data } = await supabase.auth.getSession();
+    async function boot() {
+      setChecking(true);
+      setLinkError('');
+
+      const result = await establishSessionFromUrl();
       if (cancelled) return;
-      setReady(Boolean(data.session?.user));
+
+      if (result.error) {
+        // Give detectSessionInUrl / PASSWORD_RECOVERY a brief moment
+        await new Promise((r) => setTimeout(r, 400));
+        if (cancelled) return;
+        const { data } = await supabase.auth.getSession();
+        if (data.session?.user) {
+          setReady(true);
+          setChecking(false);
+          return;
+        }
+        setLinkError(result.error);
+        setReady(false);
+        setChecking(false);
+        return;
+      }
+
+      setReady(true);
       setChecking(false);
     }
 
-    checkRecoverySession();
+    boot();
 
     const { data: listener } = supabase.auth.onAuthStateChange((event, nextSession) => {
-      if (event === 'PASSWORD_RECOVERY' || (event === 'SIGNED_IN' && nextSession?.user)) {
+      if (
+        (event === 'PASSWORD_RECOVERY' || event === 'SIGNED_IN') &&
+        nextSession?.user
+      ) {
         setReady(true);
+        setLinkError('');
         setChecking(false);
       }
     });
@@ -45,13 +149,6 @@ export default function ResetPassword() {
       listener.subscription.unsubscribe();
     };
   }, []);
-
-  useEffect(() => {
-    if (!authLoading && session?.user) {
-      setReady(true);
-      setChecking(false);
-    }
-  }, [authLoading, session]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -72,6 +169,12 @@ export default function ResetPassword() {
       setSubmitting(false);
       setError(result.error);
       return;
+    }
+
+    try {
+      sessionStorage.removeItem('movecorp:reset-role');
+    } catch {
+      /* ignore */
     }
 
     await signOut();
@@ -155,12 +258,9 @@ export default function ResetPassword() {
             }}
           >
             <p style={{ margin: '0 0 0.75rem' }}>
-              Link inválido ou expirado. Solicite um novo e-mail de recuperação.
+              {linkError || 'Link inválido ou expirado. Solicite um novo e-mail de recuperação.'}
             </p>
-            <Link
-              to={roleParam === 'driver' ? '/forgot-password/driver' : '/forgot-password/employee'}
-              style={{ color: 'var(--primary)', fontWeight: 600 }}
-            >
+            <Link to={forgotPath} style={{ color: 'var(--primary)', fontWeight: 600 }}>
               Pedir novo link
             </Link>
           </div>

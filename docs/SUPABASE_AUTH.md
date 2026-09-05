@@ -83,15 +83,20 @@ Replace the three UUIDs with the real ones from the dashboard.
 
 No SQL required. Configure once in **Authentication → URL Configuration**:
 
-- **Redirect URLs** must include:
+- **Redirect URLs** must include (exact path, no query string):
   - `http://localhost:5173/reset-password`
-  - `https://YOUR-VERCEL-DOMAIN/reset-password` (production)
+  - `https://YOUR-VERCEL-DOMAIN/reset-password`
+- Optional wildcard: `https://YOUR-VERCEL-DOMAIN/**`
+
+Also set **Site URL** to your production domain (or localhost while testing).
 
 App flow:
 
 1. `/login/employee` or `/login/driver` → **Esqueci a senha**
-2. `/forgot-password/:role` → sends `resetPasswordForEmail` with `redirectTo` → `/reset-password?role=...`
-3. User opens the e-mail link → `/reset-password` → sets a new password → back to login
+2. `/forgot-password/:role` → `resetPasswordForEmail` with `redirectTo` → `/reset-password`
+3. User opens the e-mail link → app establishes recovery session from URL tokens → new password → login
+
+If the link opens the homepage instead of `/reset-password`, the app redirects on `PASSWORD_RECOVERY`.
 
 ## Persistent employee credits
 

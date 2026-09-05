@@ -9,7 +9,19 @@ if (!supabaseUrl || !supabaseAnonKey) {
   );
 }
 
+/**
+ * Implicit flow so recovery e-mail links work even if the user opens them
+ * in another browser/device (PKCE would require the original code verifier).
+ */
 export const supabase = createClient(
   supabaseUrl || 'https://placeholder.supabase.co',
-  supabaseAnonKey || 'placeholder'
+  supabaseAnonKey || 'placeholder',
+  {
+    auth: {
+      flowType: 'implicit',
+      detectSessionInUrl: true,
+      persistSession: true,
+      autoRefreshToken: true,
+    },
+  }
 );
