@@ -157,6 +157,17 @@ export default function LoginForm() {
             />
           </label>
 
+          {(roleParam === 'employee' || roleParam === 'driver') && (
+            <div style={{ textAlign: 'right', marginTop: '-0.35rem' }}>
+              <Link
+                to={`/forgot-password/${roleParam}`}
+                style={{ color: 'var(--primary)', fontWeight: 600, fontSize: '0.85rem' }}
+              >
+                Esqueci a senha
+              </Link>
+            </div>
+          )}
+
           {error && (
             <div
               style={{

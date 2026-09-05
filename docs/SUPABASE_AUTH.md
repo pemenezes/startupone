@@ -79,6 +79,20 @@ values
 
 Replace the three UUIDs with the real ones from the dashboard.
 
+## Forgot password (employee / driver)
+
+No SQL required. Configure once in **Authentication → URL Configuration**:
+
+- **Redirect URLs** must include:
+  - `http://localhost:5173/reset-password`
+  - `https://YOUR-VERCEL-DOMAIN/reset-password` (production)
+
+App flow:
+
+1. `/login/employee` or `/login/driver` → **Esqueci a senha**
+2. `/forgot-password/:role` → sends `resetPasswordForEmail` with `redirectTo` → `/reset-password?role=...`
+3. User opens the e-mail link → `/reset-password` → sets a new password → back to login
+
 ## Persistent employee credits
 
 Run [`employee_credits.sql`](./employee_credits.sql).

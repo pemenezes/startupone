@@ -157,6 +157,36 @@ export function AuthProvider({ children }) {
     setProfile(null);
   };
 
+  const requestPasswordReset = async (email, rolePath) => {
+    const trimmed = email.trim();
+    const redirect = new URL('/reset-password', window.location.origin);
+    if (rolePath === 'employee' || rolePath === 'driver') {
+      redirect.searchParams.set('role', rolePath);
+    }
+
+    const { error } = await supabase.auth.resetPasswordForEmail(trimmed, {
+      redirectTo: redirect.toString(),
+    });
+
+    if (error) {
+      return { error: error.message };
+    }
+
+    return {
+      error: null,
+      message:
+        'Se este e-mail estiver cadastrado, enviamos um link para redefinir a senha. Confira também a caixa de spam.',
+    };
+  };
+
+  const updatePassword = async (newPassword) => {
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    if (error) {
+      return { error: error.message };
+    }
+    return { error: null };
+  };
+
   const refreshProfile = async () => {
     const userId = session?.user?.id;
     if (!userId) return null;
@@ -174,6 +204,8 @@ export function AuthProvider({ children }) {
     signIn,
     signUp,
     signOut,
+    requestPasswordReset,
+    updatePassword,
     refreshProfile,
     setProfile,
     isAuthenticated: Boolean(session?.user),

@@ -4,6 +4,8 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import Splash from './pages/Splash';
 import Login from './pages/Login';
 import LoginForm from './pages/LoginForm';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 import Register from './pages/Register';
 import RegisterForm from './pages/RegisterForm';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -19,6 +21,8 @@ function App() {
         <Route path="/" element={<Splash />} />
         <Route path="/login" element={<Login />} />
         <Route path="/login/:role" element={<LoginForm />} />
+        <Route path="/forgot-password/:role" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/register" element={<Register />} />
         <Route path="/register/:role" element={<RegisterForm />} />
 
