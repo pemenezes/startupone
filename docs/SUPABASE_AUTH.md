@@ -108,20 +108,29 @@ where email = 'user@example.com';
 
 No SQL required. Configure once in **Authentication → URL Configuration**:
 
-- **Redirect URLs** must include (exact path, no query string):
-  - `http://localhost:5173/reset-password`
-  - `https://YOUR-VERCEL-DOMAIN/reset-password`
-- Optional wildcard: `https://YOUR-VERCEL-DOMAIN/**`
+### Site URL
+Use the **production** app URL (not localhost:3000):
 
-Also set **Site URL** to your production domain (or localhost while testing).
+- `https://startupone-phi.vercel.app`
 
-App flow:
+(Watch the spelling: `startupone`, not `startupon`.)
 
+### Redirect URLs
+Exact entries:
+
+- `http://localhost:5173/reset-password`
+- `https://startupone-phi.vercel.app/reset-password`
+- Optional: `https://startupone-phi.vercel.app/**`
+
+### Vercel SPA routing
+This project includes [`vercel.json`](../vercel.json) so deep links like `/reset-password` serve `index.html` (avoids Vercel `404: NOT_FOUND`). Redeploy after adding it.
+
+### App flow
 1. `/login/employee` or `/login/driver` → **Esqueci a senha**
 2. `/forgot-password/:role` → `resetPasswordForEmail` with `redirectTo` → `/reset-password`
-3. User opens the e-mail link → app establishes recovery session from URL tokens → new password → login
+3. User opens the **newest** e-mail link once → sets password → login
 
-If the link opens the homepage instead of `/reset-password`, the app redirects on `PASSWORD_RECOVERY`.
+If the URL hash contains `error_code=otp_expired`, the link was already used, expired, or prefetched by the mail client — request a fresh e-mail after waiting out rate limits.
 
 ## Persistent employee credits
 

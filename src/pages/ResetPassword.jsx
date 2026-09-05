@@ -19,14 +19,30 @@ function readStoredRole(searchRole) {
  * Turn whatever Supabase put in the URL into an auth session.
  * Supports: ?code= (PKCE), #access_token (implicit), ?token_hash=&type= (OTP).
  */
+function translateAuthLinkError(raw, errorCode) {
+  const text = (raw || '').toLowerCase();
+  const code = (errorCode || '').toLowerCase();
+  if (code === 'otp_expired' || text.includes('expired') || text.includes('invalid')) {
+    return 'Este link de recuperação expirou ou já foi usado. Peça um novo e-mail e abra o link mais recente uma única vez.';
+  }
+  if (text.includes('access_denied')) {
+    return 'Acesso negado ao link de recuperação. Solicite um novo e-mail.';
+  }
+  return raw || 'Link inválido ou expirado.';
+}
+
 async function establishSessionFromUrl() {
   const url = new URL(window.location.href);
   const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''));
 
+  const errorCode = url.searchParams.get('error_code') || hashParams.get('error_code');
   const errorDescription =
     url.searchParams.get('error_description') || hashParams.get('error_description');
-  if (errorDescription) {
-    return { error: decodeURIComponent(errorDescription.replace(/\+/g, ' ')) };
+  if (errorDescription || errorCode) {
+    const decoded = errorDescription
+      ? decodeURIComponent(errorDescription.replace(/\+/g, ' '))
+      : '';
+    return { error: translateAuthLinkError(decoded, errorCode) };
   }
 
   const code = url.searchParams.get('code');
