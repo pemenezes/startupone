@@ -11,6 +11,18 @@ export async function fetchCompanies() {
   return data || [];
 }
 
+export async function fetchCompanyById(companyId) {
+  if (!companyId) return null;
+  const { data, error } = await supabase
+    .from('companies')
+    .select('id, name')
+    .eq('id', companyId)
+    .maybeSingle();
+
+  if (error) throw error;
+  return data;
+}
+
 export async function updateEmployeeOnboarding(userId, { companyId, homeAddress, workAddress }) {
   const patch = {};
   if (companyId !== undefined) patch.company_id = companyId;

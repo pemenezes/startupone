@@ -79,6 +79,25 @@ values
 
 Replace the three UUIDs with the real ones from the dashboard.
 
+## Employee profile fields
+
+Run [`employee_profile_fields.sql`](./employee_profile_fields.sql) once to add `profiles.department` (setor).
+
+The employee **Perfil** screen then shows:
+
+- name / e-mail from `profiles`
+- company name from `companies` via `company_id`
+- setor from `profiles.department` (or “Não informado”)
+- chapa derived from the user id
+
+To set a department for a user:
+
+```sql
+update public.profiles
+set department = 'Tecnologia'
+where email = 'user@example.com';
+```
+
 ## Forgot password (employee / driver)
 
 No SQL required. Configure once in **Authentication → URL Configuration**:
