@@ -13,6 +13,7 @@ import CreditHistory from './CreditHistory';
 import CancelTrip from './CancelTrip';
 import ReviewDriver from './ReviewDriver';
 import Profile from './Profile';
+import HelpSupport from './HelpSupport';
 import AlternativeTransport from './AlternativeTransport';
 import DriverProfile from './DriverProfile';
 import OnboardingCompany from './OnboardingCompany';
@@ -149,6 +150,7 @@ function EmployeeShell() {
             <Route path="/credits" element={<Credits />} />
             <Route path="/credits/history" element={<CreditHistory />} />
             <Route path="/profile" element={<Profile />} />
+            <Route path="/help" element={<HelpSupport />} />
             <Route path="/alternative" element={<AlternativeTransport />} />
             <Route path="/driver-profile" element={<DriverProfile />} />
             <Route path="/cancel" element={<CancelTrip />} />

@@ -6,7 +6,6 @@ import {
   Tag,
   CheckCircle2,
   Map,
-  ShieldAlert,
   Bell,
   Lock,
   HelpCircle,
@@ -84,7 +83,11 @@ export default function Profile() {
     { label: 'Solicitar alteração de rota', icon: <Map size={18} color="var(--primary)" />, badge: 'Em breve' },
     { label: 'Preferências de notificação', icon: <Bell size={18} color="var(--primary)" />, badge: 'Em breve' },
     { label: 'Segurança da conta', icon: <Lock size={18} color="var(--primary)" />, badge: 'Em breve' },
-    { label: 'Ajuda e suporte', icon: <HelpCircle size={18} color="var(--primary)" />, badge: 'Em breve' },
+    {
+      label: 'Ajuda e suporte',
+      icon: <HelpCircle size={18} color="var(--primary)" />,
+      path: '/employee/help',
+    },
   ];
 
   const handleSignOut = async () => {
@@ -170,104 +173,56 @@ export default function Profile() {
         </div>
       </div>
 
-      <div className="card" style={{ borderLeft: '4px solid var(--warning)' }}>
-        <h3
-          style={{
-            marginBottom: '0.75rem',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-            fontSize: '1.1rem',
-          }}
-        >
-          <ShieldAlert size={20} color="var(--warning)" /> Regras de Uso
-        </h3>
-
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              padding: '0.5rem 0.75rem',
-              backgroundColor: 'var(--bg-primary)',
-              borderRadius: 'var(--radius-md)',
-            }}
-          >
-            <span style={{ fontSize: '0.9rem', fontWeight: 'bold' }}>Advertências Ativas:</span>
-            <span
-              style={{
-                backgroundColor: 'var(--warning)',
-                color: 'white',
-                padding: '0.1rem 0.5rem',
-                borderRadius: '1rem',
-                fontSize: '0.8rem',
-                fontWeight: 'bold',
-              }}
-            >
-              {currentEmployee?.penalties?.warnings ?? 0}
-            </span>
-          </div>
-
-          <ul
-            style={{
-              paddingLeft: '1.2rem',
-              margin: 0,
-              fontSize: '0.85rem',
-              color: 'var(--text-secondary)',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '0.5rem',
-            }}
-          >
-            <li>
-              Cancelamentos realizados no <strong>mesmo dia</strong> da viagem ou ausências não
-              justificadas geram <strong>advertências</strong>.
-            </li>
-            <li>
-              Alterações definitivas de rota devem ser solicitadas com pelo menos{' '}
-              <strong>1 dia de antecedência</strong> e requerem aprovação do RH da empresa.
-            </li>
-          </ul>
-        </div>
-      </div>
-
       <div>
         <h3 style={{ marginBottom: '0.75rem', fontSize: '1.1rem' }}>Configurações</h3>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-          {configItems.map((item, index) => (
-            <div
-              key={index}
-              className="card"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: '0.75rem 1rem',
-                opacity: 0.8,
-                cursor: 'not-allowed',
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                {item.icon}
-                <span style={{ fontSize: '0.9rem', fontWeight: '500' }}>{item.label}</span>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                <span
-                  style={{
-                    fontSize: '0.75rem',
-                    color: 'var(--text-secondary)',
-                    backgroundColor: 'var(--bg-primary)',
-                    padding: '0.1rem 0.4rem',
-                    borderRadius: '4px',
-                  }}
-                >
-                  {item.badge}
-                </span>
-                <ChevronRight size={16} color="var(--text-secondary)" />
-              </div>
-            </div>
-          ))}
+          {configItems.map((item) => {
+            const clickable = Boolean(item.path);
+            return (
+              <button
+                key={item.label}
+                type="button"
+                className="card"
+                onClick={() => {
+                  if (item.path) navigate(item.path);
+                }}
+                disabled={!clickable}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '0.75rem 1rem',
+                  opacity: clickable ? 1 : 0.8,
+                  cursor: clickable ? 'pointer' : 'not-allowed',
+                  width: '100%',
+                  textAlign: 'left',
+                  border: '1px solid var(--border)',
+                  background: 'var(--bg-secondary, white)',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                  {item.icon}
+                  <span style={{ fontSize: '0.9rem', fontWeight: 500 }}>{item.label}</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                  {item.badge && (
+                    <span
+                      style={{
+                        fontSize: '0.75rem',
+                        color: 'var(--text-secondary)',
+                        backgroundColor: 'var(--bg-primary)',
+                        padding: '0.1rem 0.4rem',
+                        borderRadius: '4px',
+                      }}
+                    >
+                      {item.badge}
+                    </span>
+                  )}
+                  <ChevronRight size={16} color="var(--text-secondary)" />
+                </div>
+              </button>
+            );
+          })}
         </div>
       </div>
 
