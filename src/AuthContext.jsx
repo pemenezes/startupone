@@ -200,6 +200,86 @@ export function AuthProvider({ children }) {
     return { error: null };
   };
 
+  const changePassword = async (currentPassword, newPassword) => {
+    const email = session?.user?.email;
+    if (!email) {
+      return { error: 'Sessão inválida. Entre novamente.' };
+    }
+
+    const { error: reauthError } = await supabase.auth.signInWithPassword({
+      email,
+      password: currentPassword,
+    });
+    if (reauthError) {
+      return { error: 'Senha atual incorreta.' };
+    }
+
+    return updatePassword(newPassword);
+  };
+
+  const changeEmail = async (newEmail) => {
+    const trimmed = newEmail.trim().toLowerCase();
+    if (!trimmed) {
+      return { error: 'Informe um e-mail válido.' };
+    }
+
+    const { data, error } = await supabase.auth.updateUser({ email: trimmed });
+    if (error) {
+      return { error: error.message };
+    }
+
+    // If confirmation is disabled, sync profiles immediately.
+    const confirmedEmail = data?.user?.email;
+    if (confirmedEmail && session?.user?.id && confirmedEmail === trimmed) {
+      await supabase.from('profiles').update({ email: trimmed }).eq('id', session.user.id);
+      try {
+        await refreshProfile();
+      } catch {
+        /* ignore */
+      }
+    }
+
+    return {
+      error: null,
+      message:
+        'Se o projeto exigir confirmação, enviamos um link para o novo e-mail. Confirme para concluir a troca.',
+    };
+  };
+
+  const updateDisplayName = async (fullName) => {
+    const trimmed = fullName.trim();
+    if (!trimmed) {
+      return { error: 'Informe um nome.' };
+    }
+    const userId = session?.user?.id;
+    if (!userId) {
+      return { error: 'Sessão inválida. Entre novamente.' };
+    }
+
+    const { error: authError } = await supabase.auth.updateUser({
+      data: { full_name: trimmed },
+    });
+    if (authError) {
+      return { error: authError.message };
+    }
+
+    const { data, error } = await supabase
+      .from('profiles')
+      .update({ full_name: trimmed })
+      .eq('id', userId)
+      .select(
+        'id, email, full_name, role, company_id, home_address, work_address, credit_balance, credit_last_top_up'
+      )
+      .single();
+
+    if (error) {
+      return { error: error.message };
+    }
+
+    setProfile(data);
+    return { error: null };
+  };
+
   const refreshProfile = async () => {
     const userId = session?.user?.id;
     if (!userId) return null;
@@ -219,6 +299,9 @@ export function AuthProvider({ children }) {
     signOut,
     requestPasswordReset,
     updatePassword,
+    changePassword,
+    changeEmail,
+    updateDisplayName,
     refreshProfile,
     setProfile,
     isAuthenticated: Boolean(session?.user),
