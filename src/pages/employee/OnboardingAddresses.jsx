@@ -23,7 +23,7 @@ export default function OnboardingAddresses() {
         workAddress: workAddress.trim(),
       });
       setProfile(updated);
-      navigate('/employee/onboarding/route', { replace: true });
+      navigate('/employee/onboarding/region', { replace: true });
     } catch (err) {
       setError(err.message || 'Não foi possível salvar os endereços.');
     } finally {

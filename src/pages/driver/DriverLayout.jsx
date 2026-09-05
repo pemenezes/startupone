@@ -3,6 +3,7 @@ import { Routes, Route, useNavigate } from 'react-router-dom';
 import { Bell, LogOut } from 'lucide-react';
 import BottomNav from '../../components/BottomNav';
 import HomeDriver from './HomeDriver';
+import ClaimRoute from './ClaimRoute';
 import PassengerList from './PassengerList';
 import MapNavigation from './MapNavigation';
 import History from './History';
@@ -148,6 +149,7 @@ export default function DriverLayout() {
       <div style={{ padding: '1rem' }}>
         <Routes>
           <Route path="/" element={<HomeDriver />} />
+          <Route path="/claim-route" element={<ClaimRoute />} />
           <Route path="/passengers" element={<PassengerList />} />
           <Route path="/history" element={<History />} />
           <Route path="/profile" element={<Profile />} />

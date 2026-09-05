@@ -23,9 +23,13 @@ export async function fetchCompanyById(companyId) {
   return data;
 }
 
-export async function updateEmployeeOnboarding(userId, { companyId, homeAddress, workAddress }) {
+export async function updateEmployeeOnboarding(
+  userId,
+  { companyId, regionId, homeAddress, workAddress }
+) {
   const patch = {};
   if (companyId !== undefined) patch.company_id = companyId;
+  if (regionId !== undefined) patch.region_id = regionId;
   if (homeAddress !== undefined) patch.home_address = homeAddress;
   if (workAddress !== undefined) patch.work_address = workAddress;
 
@@ -33,7 +37,9 @@ export async function updateEmployeeOnboarding(userId, { companyId, homeAddress,
     .from('profiles')
     .update(patch)
     .eq('id', userId)
-    .select('id, email, full_name, role, company_id, home_address, work_address, credit_balance, credit_last_top_up')
+    .select(
+      'id, email, full_name, role, company_id, region_id, home_address, work_address, credit_balance, credit_last_top_up'
+    )
     .single();
 
   if (error) throw error;

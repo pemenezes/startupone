@@ -25,6 +25,7 @@ import AlternativeTransport from './AlternativeTransport';
 import DriverProfile from './DriverProfile';
 import OnboardingCompany from './OnboardingCompany';
 import OnboardingAddresses from './OnboardingAddresses';
+import OnboardingRegion from './OnboardingRegion';
 import OnboardingRoute from './OnboardingRoute';
 
 const initialNotifications = [
@@ -213,6 +214,7 @@ function EmployeeShell() {
             <Route path="/review" element={<ReviewDriver />} />
             <Route path="/onboarding/company" element={<OnboardingCompany />} />
             <Route path="/onboarding/addresses" element={<OnboardingAddresses />} />
+            <Route path="/onboarding/region" element={<OnboardingRegion />} />
             <Route path="/onboarding/route" element={<OnboardingRoute />} />
             <Route path="*" element={<HomeEmployee />} />
           </Routes>

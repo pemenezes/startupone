@@ -79,6 +79,24 @@ values
 
 Replace the three UUIDs with the real ones from the dashboard.
 
+## Recurring routes V1
+
+Run [`recurring_routes_v1.sql`](./recurring_routes_v1.sql) after companies/drivers/routes are in place.
+
+Model:
+
+- **regions** + `profiles.region_id`
+- **routes** with `direction` (`outbound` / `return`), `destination_label`, `typical_start_time`
+- **driver_route_assignments** — motorista assume empresa+rota (responsável seg–sex)
+- **employee_route_subscriptions** — funcionário escolhe rota + `weekdays`
+- **attendance_exceptions** — cancelar **só o dia**
+
+App flow:
+
+1. Employee: empresa → endereços → região → rota (ida/volta) + dias  
+2. Driver: Assumir rota → vê passageiros previstos hoje  
+3. Home employee: mostra viagens **de hoje** a partir do calendário  
+
 ## Notification preferences
 
 Run [`employee_notification_prefs.sql`](./employee_notification_prefs.sql) once to add `profiles.notification_prefs`.

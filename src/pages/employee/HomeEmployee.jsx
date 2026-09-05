@@ -3,7 +3,6 @@ import {
   AlertTriangle,
   Car,
   ChevronRight,
-  Clock,
   MapPin,
   Navigation,
   Route as RouteIcon,
@@ -49,7 +48,7 @@ export default function HomeEmployee() {
   const navigate = useNavigate();
   const { currentEmployee } = useAppContext();
   const { profile } = useAuth();
-  const { activeTrip, hasActiveTrip, onboardingComplete } = useTrip();
+  const { hasActiveTrip, hasSubscription, onboardingComplete, expectedToday } = useTrip();
 
   const penalties = currentEmployee.penalties;
   const suspended = penalties.status === 'suspended';
@@ -71,8 +70,6 @@ export default function HomeEmployee() {
   }, [storageKey, penalties.status]);
 
   const showNotice = penalties.status !== 'stable' && !dismissed;
-  const route = activeTrip?.route;
-  const driver = route?.driver;
   const status = statusByRoute.on_time;
 
   const handleDismiss = () => {
@@ -117,14 +114,14 @@ export default function HomeEmployee() {
         </div>
       )}
 
-      {!hasActiveTrip ? (
+      {!hasSubscription ? (
         <div className="card" style={{ textAlign: 'center', padding: '1.75rem 1.25rem', display: 'grid', gap: '0.75rem' }}>
           <RouteIcon size={36} color="var(--primary)" style={{ margin: '0 auto' }} />
-          <h2 style={{ margin: 0, fontSize: '1.2rem' }}>Nenhuma viagem ativa</h2>
+          <h2 style={{ margin: 0, fontSize: '1.2rem' }}>Defina sua rota fixa</h2>
           <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '0.95rem' }}>
             {onboardingComplete
-              ? 'Escolha uma rota da sua empresa para liberar Acompanhar van e Cancelar viagem.'
-              : 'Conclua o cadastro (empresa e endereços) e escolha uma rota.'}
+              ? 'Escolha ida e/ou volta e os dias presenciais. O app assume esses dias toda semana.'
+              : 'Conclua o cadastro (empresa, endereços e região) e escolha sua rota.'}
           </p>
           <button
             className="btn btn-primary"
@@ -138,71 +135,92 @@ export default function HomeEmployee() {
             {onboardingComplete ? 'Escolher rota' : 'Continuar cadastro'}
           </button>
         </div>
+      ) : !hasActiveTrip ? (
+        <div className="card" style={{ textAlign: 'center', padding: '1.75rem 1.25rem', display: 'grid', gap: '0.75rem' }}>
+          <RouteIcon size={36} color="var(--primary)" style={{ margin: '0 auto' }} />
+          <h2 style={{ margin: 0, fontSize: '1.2rem' }}>Sem fretado hoje</h2>
+          <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '0.95rem' }}>
+            Hoje não está nos seus dias presenciais (ou você cancelou o dia). Seu plano semanal continua ativo.
+          </p>
+          <button
+            className="btn btn-outline"
+            type="button"
+            onClick={() => navigate('/employee/onboarding/route')}
+          >
+            Ajustar plano de rotas
+          </button>
+        </div>
       ) : (
         <>
           <div className="section-title">
             <Navigation size={20} />
             <h2>Sua viagem hoje</h2>
           </div>
-          <article className="card journey-card">
-            <header>
-              <div>
-                <small>Rota</small>
-                <h2>{route.name}</h2>
-              </div>
-              <span className={status.className}>{status.label}</span>
-            </header>
-            <div className="journey-time">
-              <span>
-                <small>Previsão de chegada</small>
-                <strong>{route.estimated_arrival}</strong>
-              </span>
-              <span>
-                <small>Van no ponto em</small>
-                <strong>{route.eta_minutes} min</strong>
-              </span>
-            </div>
-            <div className="journey-details">
-              <span>
-                <MapPin size={17} />
-                <small>Ponto de embarque</small>
-                <strong>{route.boarding_stop}</strong>
-              </span>
-              <button type="button" onClick={() => navigate('/employee/driver-profile')}>
-                <User size={17} />
-                <span>
-                  <small>Motorista</small>
-                  <strong>
-                    {driver?.name || 'A definir'}{' '}
-                    {driver ? (
-                      <>
-                        <Star size={13} fill="var(--warning)" /> {driver.rating.average.toFixed(1)}
-                      </>
-                    ) : null}
-                  </strong>
-                </span>
-                <ChevronRight size={18} />
-              </button>
-              <span>
-                <Car size={17} />
-                <small>Veículo</small>
-                <strong>{driver?.vehicle?.label || 'Van da operação'}</strong>
-              </span>
-              <span>
-                <Clock size={17} />
-                <small>Ocupação estimada</small>
-                <strong>{route.occupancy}%</strong>
-              </span>
-            </div>
-            <div className="journey-actions">
-              <button className="btn btn-primary" type="button" onClick={() => navigate('/employee/track')}>
-                <Navigation size={18} /> Acompanhar van
-              </button>
-              <button className="btn btn-outline" type="button" onClick={() => navigate('/employee/cancel')}>
-                Cancelar viagem
-              </button>
-            </div>
-          </article>
+          {expectedToday.map((ride) => {
+            const r = ride.route;
+            const d = r?.driver;
+            return (
+              <article key={ride.id} className="card journey-card" style={{ marginBottom: '0.75rem' }}>
+                <header>
+                  <div>
+                    <small>{r?.direction === 'return' ? 'Volta' : 'Ida'}</small>
+                    <h2>{r?.name}</h2>
+                  </div>
+                  <span className={status.className}>{status.label}</span>
+                </header>
+                <div className="journey-time">
+                  <span>
+                    <small>Saída prevista</small>
+                    <strong>{r?.typical_start_time || r?.estimated_arrival}</strong>
+                  </span>
+                  <span>
+                    <small>ETA estimado</small>
+                    <strong>{r?.eta_minutes ?? '—'} min</strong>
+                  </span>
+                </div>
+                <div className="journey-details">
+                  <span>
+                    <MapPin size={17} />
+                    <small>Embarque / destino</small>
+                    <strong>{profile?.home_address || r?.boarding_stop}</strong>
+                  </span>
+                  <span>
+                    <MapPin size={17} />
+                    <small>Destino comum</small>
+                    <strong>{r?.destination_label || r?.boarding_stop}</strong>
+                  </span>
+                  <button type="button" onClick={() => navigate('/employee/driver-profile')}>
+                    <User size={17} />
+                    <span>
+                      <small>Motorista</small>
+                      <strong>
+                        {d?.name || 'A definir'}{' '}
+                        {d ? (
+                          <>
+                            <Star size={13} fill="var(--warning)" /> {d.rating?.average?.toFixed?.(1)}
+                          </>
+                        ) : null}
+                      </strong>
+                    </span>
+                    <ChevronRight size={18} />
+                  </button>
+                  <span>
+                    <Car size={17} />
+                    <small>Veículo</small>
+                    <strong>{d?.vehicle?.label || 'Van da operação'}</strong>
+                  </span>
+                </div>
+              </article>
+            );
+          })}
+          <div className="journey-actions" style={{ display: 'grid', gap: '0.5rem' }}>
+            <button className="btn btn-primary" type="button" onClick={() => navigate('/employee/track')}>
+              <Navigation size={18} /> Acompanhar van
+            </button>
+            <button className="btn btn-outline" type="button" onClick={() => navigate('/employee/cancel')}>
+              Cancelar só hoje
+            </button>
+          </div>
 
           <div className="quick-action-grid">
             <button className="quick-action" type="button" onClick={() => navigate('/employee/review')}>
@@ -219,8 +237,8 @@ export default function HomeEmployee() {
             >
               <RouteIcon size={20} />
               <span>
-                <strong>Trocar rota</strong>
-                <small>Escolher outra linha hoje</small>
+                <strong>Ajustar plano</strong>
+                <small>Trocar rota ou dias da semana</small>
               </span>
             </button>
           </div>

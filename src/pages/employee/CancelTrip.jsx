@@ -15,7 +15,7 @@ export default function CancelTrip() {
   const [error, setError] = useState('');
 
   if (!hasActiveTrip && !confirmed) {
-    return <Navigate to="/employee/onboarding/route" replace />;
+    return <Navigate to="/employee" replace />;
   }
 
   const route = activeTrip?.route;
@@ -24,7 +24,7 @@ export default function CancelTrip() {
     setSaving(true);
     setError('');
     try {
-      await cancelTrip();
+      await cancelTrip(activeTrip.route_id);
       const employeeId = profile?.id || currentEmployee.id;
       if (employeeId) recordNoShow(employeeId);
       setConfirmed(true);
@@ -51,14 +51,14 @@ export default function CancelTrip() {
       >
         <CheckCircle2 size={64} color="var(--secondary)" style={{ marginBottom: '1rem' }} />
         <h2>Viagem cancelada</h2>
-        <p>Sua rota foi encerrada. Uma advertência pode ser aplicada conforme a política.</p>
+        <p>Cancelamento registrado só para hoje. Seu plano semanal continua valendo.</p>
       </div>
     );
   }
 
   return (
     <div className="page-transition">
-      <h1 style={{ fontSize: '1.5rem', marginBottom: '1.5rem' }}>Cancelar rota</h1>
+      <h1 style={{ fontSize: '1.5rem', marginBottom: '1.5rem' }}>Cancelar só hoje</h1>
 
       <div className="card" style={{ marginBottom: '1.5rem', borderLeft: '4px solid var(--danger)' }}>
         <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
