@@ -81,7 +81,11 @@ export default function Profile() {
 
   const configItems = [
     { label: 'Solicitar alteração de rota', icon: <Map size={18} color="var(--primary)" />, badge: 'Em breve' },
-    { label: 'Preferências de notificação', icon: <Bell size={18} color="var(--primary)" />, badge: 'Em breve' },
+    {
+      label: 'Preferências de notificação',
+      icon: <Bell size={18} color="var(--primary)" />,
+      path: '/employee/notifications',
+    },
     {
       label: 'Segurança da conta',
       icon: <Lock size={18} color="var(--primary)" />,

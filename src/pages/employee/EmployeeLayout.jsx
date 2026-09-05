@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Routes, Route, useNavigate } from 'react-router-dom';
 import { Bell, LogOut } from 'lucide-react';
 import BottomNav from '../../components/BottomNav';
@@ -6,6 +6,11 @@ import NotificationsPanel from '../../components/NotificationsPanel';
 import EmployeeFlowGate from '../../components/EmployeeFlowGate';
 import { TripProvider, useTrip } from '../../TripContext';
 import { useAuth } from '../../auth-context';
+import {
+  DEFAULT_NOTIFICATION_PREFS,
+  fetchNotificationPrefs,
+  filterNotificationsByPrefs,
+} from '../../lib/notificationPrefs';
 import HomeEmployee from './HomeEmployee';
 import TrackVan from './TrackVan';
 import Credits from './Credits';
@@ -15,6 +20,7 @@ import ReviewDriver from './ReviewDriver';
 import Profile from './Profile';
 import HelpSupport from './HelpSupport';
 import AccountSecurity from './AccountSecurity';
+import NotificationPreferences from './NotificationPreferences';
 import AlternativeTransport from './AlternativeTransport';
 import DriverProfile from './DriverProfile';
 import OnboardingCompany from './OnboardingCompany';
@@ -24,12 +30,33 @@ import OnboardingRoute from './OnboardingRoute';
 const initialNotifications = [
   {
     id: 1,
+    category: 'penalties',
     type: 'warning',
     title: 'Advertência registrada',
     message: 'Você possui 1 advertência por ausência sem cancelamento prévio.',
     createdAt: '2026-06-21T09:30:00',
     read: false,
-    actionUrl: '/employee/profile',
+    actionUrl: '/employee/help',
+  },
+  {
+    id: 2,
+    category: 'tripUpdates',
+    type: 'info',
+    title: 'Van a caminho',
+    message: 'Sua van está a cerca de 12 minutos do ponto de embarque.',
+    createdAt: '2026-06-21T17:50:00',
+    read: true,
+    actionUrl: '/employee/track',
+  },
+  {
+    id: 3,
+    category: 'credits',
+    type: 'success',
+    title: 'Saldo atualizado',
+    message: 'Uma movimentação recente alterou o saldo da sua conta.',
+    createdAt: '2026-06-20T11:15:00',
+    read: true,
+    actionUrl: '/employee/credits',
   },
 ];
 
@@ -38,13 +65,37 @@ function EmployeeShell() {
   const { signOut, profile } = useAuth();
   const { hasActiveTrip } = useTrip();
   const [notifications, setNotifications] = useState(initialNotifications);
+  const [prefs, setPrefs] = useState(DEFAULT_NOTIFICATION_PREFS);
   const [isOpen, setIsOpen] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetchNotificationPrefs(profile?.id).then((next) => {
+      if (!cancelled) setPrefs(next);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [profile?.id]);
+
+  useEffect(() => {
+    const onPrefsChanged = (event) => {
+      if (event?.detail) setPrefs(event.detail);
+    };
+    window.addEventListener('movecorp:notification-prefs-changed', onPrefsChanged);
+    return () => window.removeEventListener('movecorp:notification-prefs-changed', onPrefsChanged);
+  }, []);
+
+  const visibleNotifications = useMemo(
+    () => filterNotificationsByPrefs(notifications, prefs),
+    [notifications, prefs]
+  );
 
   const handleMarkAsRead = (id) => {
     setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)));
   };
 
-  const unreadCount = notifications.filter((n) => !n.read).length;
+  const unreadCount = visibleNotifications.filter((n) => !n.read).length;
   const firstName = (profile?.full_name || '').trim().split(/\s+/)[0];
 
   const handleLogout = async () => {
@@ -75,7 +126,9 @@ function EmployeeShell() {
           position: 'relative',
         }}
       >
-        <h2 style={{ margin: 0, fontSize: '1.2rem' }}>{firstName ? `Olá, ${firstName}` : 'MoveCorp'}</h2>
+        <h2 style={{ margin: 0, fontSize: '1.2rem', color: 'white' }}>
+          {firstName ? `Olá, ${firstName}` : 'MoveCorp'}
+        </h2>
         <div className="header-actions">
           <button
             onClick={() => setIsOpen(!isOpen)}
@@ -136,7 +189,7 @@ function EmployeeShell() {
             }}
           />
           <NotificationsPanel
-            notifications={notifications}
+            notifications={visibleNotifications}
             onMarkAsRead={handleMarkAsRead}
             onClose={() => setIsOpen(false)}
           />
@@ -153,6 +206,7 @@ function EmployeeShell() {
             <Route path="/profile" element={<Profile />} />
             <Route path="/help" element={<HelpSupport />} />
             <Route path="/security" element={<AccountSecurity />} />
+            <Route path="/notifications" element={<NotificationPreferences />} />
             <Route path="/alternative" element={<AlternativeTransport />} />
             <Route path="/driver-profile" element={<DriverProfile />} />
             <Route path="/cancel" element={<CancelTrip />} />

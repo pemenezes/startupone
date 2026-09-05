@@ -79,6 +79,12 @@ values
 
 Replace the three UUIDs with the real ones from the dashboard.
 
+## Notification preferences
+
+Run [`employee_notification_prefs.sql`](./employee_notification_prefs.sql) once to add `profiles.notification_prefs`.
+
+Employee **Perfil → Preferências de notificação** toggles which categories appear in the bell panel. Prefs also save to `localStorage` so the UI works even before the SQL is applied.
+
 ## Employee profile fields
 
 Run [`employee_profile_fields.sql`](./employee_profile_fields.sql) once to add `profiles.department` (setor).
