@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ArrowRightLeft, Wallet, Ticket, Plus } from 'lucide-react';
 import { useAppContext } from '../../app-context';
 import { useAuth } from '../../auth-context';
-import { fetchCreditTransactions } from '../../lib/credits';
 
 export default function Credits() {
+  const navigate = useNavigate();
   const { currentEmployee, updateWalletBalance } = useAppContext();
   const { profile } = useAuth();
   const employeeId = profile?.id || currentEmployee.id;
@@ -13,29 +14,6 @@ export default function Credits() {
   const [addAmount, setAddAmount] = useState(0);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
-  const [history, setHistory] = useState([]);
-
-  const loadHistory = async () => {
-    if (!employeeId || !String(employeeId).includes('-')) return;
-    try {
-      const rows = await fetchCreditTransactions(employeeId);
-      setHistory(
-        rows.map((row) => ({
-          id: row.id,
-          title: row.title,
-          date: new Date(row.created_at).toLocaleDateString('pt-BR'),
-          amount: Number(row.amount),
-          type: Number(row.amount) >= 0 ? 'secondary' : 'danger',
-        }))
-      );
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  useEffect(() => {
-    loadHistory();
-  }, [employeeId, balance]);
 
   const handleExchange = async () => {
     if (exchangeAmount <= 0 || exchangeAmount > balance) {
@@ -47,7 +25,6 @@ export default function Credits() {
     try {
       await updateWalletBalance(employeeId, -exchangeAmount, 'Troca VT');
       setExchangeAmount(0);
-      await loadHistory();
     } catch (err) {
       setError(err.message || 'Falha ao converter créditos.');
     } finally {
@@ -65,7 +42,6 @@ export default function Credits() {
     try {
       await updateWalletBalance(employeeId, addAmount, 'Adição de saldo');
       setAddAmount(0);
-      await loadHistory();
     } catch (err) {
       setError(err.message || 'Falha ao adicionar saldo.');
     } finally {
@@ -235,26 +211,14 @@ export default function Credits() {
         </div>
       </div>
 
-      <h3>Histórico de uso</h3>
-      <div style={{ marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-        {!history.length && (
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Nenhuma movimentação ainda.</p>
-        )}
-        {history.map((item) => (
-          <div
-            key={item.id}
-            style={{ display: 'flex', justifyContent: 'space-between', padding: '1rem', borderBottom: '1px solid var(--border)' }}
-          >
-            <div>
-              <p style={{ margin: 0, fontWeight: 'bold', fontSize: '0.9rem' }}>{item.title}</p>
-              <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{item.date}</p>
-            </div>
-            <p style={{ margin: 0, fontWeight: 'bold', color: `var(--${item.type})` }}>
-              {item.amount > 0 ? '+' : '-'} R$ {Math.abs(item.amount).toFixed(2).replace('.', ',')}
-            </p>
-          </div>
-        ))}
-      </div>
+      <button
+        type="button"
+        className="btn btn-outline"
+        onClick={() => navigate('/employee/credits/history')}
+        style={{ width: '100%', marginTop: '0.5rem' }}
+      >
+        Ver histórico de uso
+      </button>
     </div>
   );
 }

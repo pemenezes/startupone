@@ -9,6 +9,7 @@ import { useAuth } from '../../auth-context';
 import HomeEmployee from './HomeEmployee';
 import TrackVan from './TrackVan';
 import Credits from './Credits';
+import CreditHistory from './CreditHistory';
 import CancelTrip from './CancelTrip';
 import ReviewDriver from './ReviewDriver';
 import Profile from './Profile';
@@ -146,6 +147,7 @@ function EmployeeShell() {
             <Route path="/" element={<HomeEmployee />} />
             <Route path="/track" element={<TrackVan />} />
             <Route path="/credits" element={<Credits />} />
+            <Route path="/credits/history" element={<CreditHistory />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/alternative" element={<AlternativeTransport />} />
             <Route path="/driver-profile" element={<DriverProfile />} />
