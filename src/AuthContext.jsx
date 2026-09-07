@@ -1,29 +1,6 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { supabase } from './lib/supabase';
-
-const AuthContext = createContext(null);
-
-/** URL segment → profiles.role */
-export const ROLE_BY_LOGIN_PATH = {
-  employee: 'employee',
-  driver: 'driver',
-  company: 'admin',
-};
-
-/**
- * Roles allowed to self-register. Administrator accounts are created separately,
- * so they are intentionally excluded here.
- */
-export const ROLE_BY_REGISTER_PATH = {
-  employee: 'employee',
-  driver: 'driver',
-};
-
-export const HOME_BY_ROLE = {
-  employee: '/employee',
-  driver: '/driver',
-  admin: '/company',
-};
+import { AuthContext, ROLE_BY_REGISTER_PATH } from './auth-context';
 
 const ROLE_LABELS = {
   employee: 'funcionário',
@@ -34,7 +11,9 @@ const ROLE_LABELS = {
 async function fetchProfile(userId) {
   const { data, error } = await supabase
     .from('profiles')
-    .select('id, email, full_name, role')
+    .select(
+      'id, email, full_name, role, company_id, region_id, home_address, work_address, credit_balance, credit_last_top_up'
+    )
     .eq('id', userId)
     .maybeSingle();
 
@@ -74,20 +53,37 @@ export function AuthProvider({ children }) {
 
     init();
 
-    const { data: listener } = supabase.auth.onAuthStateChange(async (_event, nextSession) => {
+    const { data: listener } = supabase.auth.onAuthStateChange((event, nextSession) => {
+      // Keep sync work out of the auth callback; async work here races with signIn navigate.
       setSession(nextSession);
-      if (nextSession?.user) {
-        try {
-          const nextProfile = await fetchProfile(nextSession.user.id);
+
+      // Recovery links sometimes land on Site URL instead of /reset-password.
+      if (event === 'PASSWORD_RECOVERY' && typeof window !== 'undefined') {
+        const path = window.location.pathname;
+        if (path !== '/reset-password') {
+          window.location.replace('/reset-password');
+          return;
+        }
+      }
+
+      if (!nextSession?.user) {
+        setProfile(null);
+        setLoading(false);
+        return;
+      }
+
+      // Don't clear an existing matching profile while we refresh (avoids ProtectedRoute bounce).
+      fetchProfile(nextSession.user.id)
+        .then((nextProfile) => {
           setProfile(nextProfile);
-        } catch (err) {
+        })
+        .catch((err) => {
           console.error('Failed to load profile', err);
           setProfile(null);
-        }
-      } else {
-        setProfile(null);
-      }
-      setLoading(false);
+        })
+        .finally(() => {
+          setLoading(false);
+        });
     });
 
     return () => {
@@ -97,8 +93,22 @@ export function AuthProvider({ children }) {
   }, []);
 
   const signIn = async (email, password, expectedRole) => {
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    const normalizedEmail = email.trim().toLowerCase();
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: normalizedEmail,
+      password,
+    });
     if (error) {
+      const msg = (error.message || '').toLowerCase();
+      if (msg.includes('invalid login credentials') || msg.includes('invalid credentials')) {
+        return {
+          error:
+            'E-mail ou senha incorretos. Confira se está no login certo (Funcionário / Motorista) e se a senha é a mais recente.',
+        };
+      }
+      if (msg.includes('email not confirmed')) {
+        return { error: 'Confirme seu e-mail antes de entrar (veja a caixa de entrada).' };
+      }
       return { error: error.message };
     }
 
@@ -120,8 +130,11 @@ export function AuthProvider({ children }) {
 
     if (nextProfile.role !== expectedRole) {
       await supabase.auth.signOut();
-      const label = ROLE_LABELS[expectedRole] || expectedRole;
-      return { error: `Este usuário não é ${label}.` };
+      const wanted = ROLE_LABELS[expectedRole] || expectedRole;
+      const actual = ROLE_LABELS[nextProfile.role] || nextProfile.role;
+      return {
+        error: `Esta conta é de ${actual}, não de ${wanted}. Volte e escolha o tipo de login correto.`,
+      };
     }
 
     setSession(data.session);
@@ -170,6 +183,128 @@ export function AuthProvider({ children }) {
     setProfile(null);
   };
 
+  const requestPasswordReset = async (email, rolePath) => {
+    const trimmed = email.trim();
+    // Keep redirectTo exact (no query). Query strings often fail Redirect URL allow-lists.
+    if (rolePath === 'employee' || rolePath === 'driver') {
+      try {
+        sessionStorage.setItem('movecorp:reset-role', rolePath);
+      } catch {
+        /* ignore */
+      }
+    }
+
+    const { error } = await supabase.auth.resetPasswordForEmail(trimmed, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+
+    if (error) {
+      return { error: error.message };
+    }
+
+    return {
+      error: null,
+      message:
+        'Se este e-mail estiver cadastrado, enviamos um link para redefinir a senha. Confira também a caixa de spam.',
+    };
+  };
+
+  const updatePassword = async (newPassword) => {
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    if (error) {
+      return { error: error.message };
+    }
+    return { error: null };
+  };
+
+  const changePassword = async (currentPassword, newPassword) => {
+    const email = session?.user?.email;
+    if (!email) {
+      return { error: 'Sessão inválida. Entre novamente.' };
+    }
+
+    const { error: reauthError } = await supabase.auth.signInWithPassword({
+      email,
+      password: currentPassword,
+    });
+    if (reauthError) {
+      return { error: 'Senha atual incorreta.' };
+    }
+
+    return updatePassword(newPassword);
+  };
+
+  const changeEmail = async (newEmail) => {
+    const trimmed = newEmail.trim().toLowerCase();
+    if (!trimmed) {
+      return { error: 'Informe um e-mail válido.' };
+    }
+
+    const { data, error } = await supabase.auth.updateUser({ email: trimmed });
+    if (error) {
+      return { error: error.message };
+    }
+
+    // If confirmation is disabled, sync profiles immediately.
+    const confirmedEmail = data?.user?.email;
+    if (confirmedEmail && session?.user?.id && confirmedEmail === trimmed) {
+      await supabase.from('profiles').update({ email: trimmed }).eq('id', session.user.id);
+      try {
+        await refreshProfile();
+      } catch {
+        /* ignore */
+      }
+    }
+
+    return {
+      error: null,
+      message:
+        'Se o projeto exigir confirmação, enviamos um link para o novo e-mail. Confirme para concluir a troca.',
+    };
+  };
+
+  const updateDisplayName = async (fullName) => {
+    const trimmed = fullName.trim();
+    if (!trimmed) {
+      return { error: 'Informe um nome.' };
+    }
+    const userId = session?.user?.id;
+    if (!userId) {
+      return { error: 'Sessão inválida. Entre novamente.' };
+    }
+
+    const { error: authError } = await supabase.auth.updateUser({
+      data: { full_name: trimmed },
+    });
+    if (authError) {
+      return { error: authError.message };
+    }
+
+    const { data, error } = await supabase
+      .from('profiles')
+      .update({ full_name: trimmed })
+      .eq('id', userId)
+      .select(
+        'id, email, full_name, role, company_id, region_id, home_address, work_address, credit_balance, credit_last_top_up'
+      )
+      .single();
+
+    if (error) {
+      return { error: error.message };
+    }
+
+    setProfile(data);
+    return { error: null };
+  };
+
+  const refreshProfile = async () => {
+    const userId = session?.user?.id;
+    if (!userId) return null;
+    const nextProfile = await fetchProfile(userId);
+    setProfile(nextProfile);
+    return nextProfile;
+  };
+
   const value = {
     session,
     user: session?.user ?? null,
@@ -179,16 +314,15 @@ export function AuthProvider({ children }) {
     signIn,
     signUp,
     signOut,
+    requestPasswordReset,
+    updatePassword,
+    changePassword,
+    changeEmail,
+    updateDisplayName,
+    refreshProfile,
+    setProfile,
     isAuthenticated: Boolean(session?.user),
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-}
-
-export function useAuth() {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
 }

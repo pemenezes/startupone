@@ -1,11 +1,14 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
-import { useAuth, HOME_BY_ROLE } from '../AuthContext';
+import { useAuth, HOME_BY_ROLE } from '../auth-context';
 
 export default function ProtectedRoute({ allowedRole, children }) {
-  const { loading, isAuthenticated, role } = useAuth();
+  const { loading, isAuthenticated, role, session, profile } = useAuth();
 
-  if (loading) {
+  // Session exists but profile not loaded yet — wait instead of bouncing to /login
+  const waitingForProfile = Boolean(session?.user) && !profile && !loading;
+
+  if (loading || waitingForProfile) {
     return (
       <div style={{ padding: '2rem', textAlign: 'center' }}>
         Carregando...

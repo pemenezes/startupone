@@ -1,19 +1,51 @@
 import React, { useState } from 'react';
-import { ArrowRightLeft, Wallet, Ticket } from 'lucide-react';
-import { useAppContext } from '../../AppContext';
+import { useNavigate } from 'react-router-dom';
+import { ArrowRightLeft, Wallet, Ticket, Plus } from 'lucide-react';
+import { useAppContext } from '../../app-context';
+import { useAuth } from '../../auth-context';
 
 export default function Credits() {
+  const navigate = useNavigate();
   const { currentEmployee, updateWalletBalance } = useAppContext();
+  const { profile } = useAuth();
+  const employeeId = profile?.id || currentEmployee.id;
   const balance = currentEmployee.wallet.balance;
   const [exchangeAmount, setExchangeAmount] = useState(0);
+  const [addAmount, setAddAmount] = useState(0);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleExchange = () => {
-    if (exchangeAmount > 0 && exchangeAmount <= balance) {
-      updateWalletBalance(currentEmployee.id, -exchangeAmount);
-      alert(`Você trocou R$ ${exchangeAmount.toFixed(2)} de créditos MoveCorp por Vale-Transporte.`);
+  const handleExchange = async () => {
+    if (exchangeAmount <= 0 || exchangeAmount > balance) {
+      alert('Valor inválido ou saldo insuficiente.');
+      return;
+    }
+    setBusy(true);
+    setError('');
+    try {
+      await updateWalletBalance(employeeId, -exchangeAmount, 'Troca VT');
       setExchangeAmount(0);
-    } else {
+    } catch (err) {
+      setError(err.message || 'Falha ao converter créditos.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleAddBalance = async () => {
+    if (addAmount <= 0) {
       alert('Valor inválido.');
+      return;
+    }
+    setBusy(true);
+    setError('');
+    try {
+      await updateWalletBalance(employeeId, addAmount, 'Adição de saldo');
+      setAddAmount(0);
+    } catch (err) {
+      setError(err.message || 'Falha ao adicionar saldo.');
+    } finally {
+      setBusy(false);
     }
   };
 
@@ -31,46 +63,52 @@ export default function Credits() {
           backgroundImage: 'linear-gradient(135deg, var(--primary) 0%, #1e3a8a 100%)',
         }}
       >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-          <Wallet size={28} />
-          <span style={{ fontSize: '0.85rem', opacity: 0.8 }}>Saldo disponível</span>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', color: '#fff' }}>
+          <Wallet size={28} color="#fff" />
+          <span style={{ fontSize: '0.85rem', opacity: 0.85, color: '#fff' }}>Saldo disponível</span>
         </div>
         <div>
-          <h2 style={{ fontSize: '2.5rem', margin: 0 }}>
-            {balance.toFixed(2)} <span style={{ fontSize: '1.2rem' }}>SC</span>
+          <h2 style={{ fontSize: '2.5rem', margin: 0, color: '#fff' }}>
+            R$ {balance.toFixed(2).replace('.', ',')}
           </h2>
-          <p style={{ margin: 0, opacity: 0.8, fontSize: '0.9rem' }}>
-            Conta de {currentEmployee.name}
+          <p style={{ margin: 0, opacity: 0.85, fontSize: '0.9rem', color: '#fff' }}>
+            Conta de {profile?.full_name || currentEmployee.name}
+            {currentEmployee.wallet.lastTopUp
+              ? ` · última recarga ${currentEmployee.wallet.lastTopUp}`
+              : ''}
           </p>
         </div>
       </div>
 
+      {error && (
+        <div
+          style={{
+            background: '#fef2f2',
+            color: '#b91c1c',
+            padding: '0.75rem',
+            borderRadius: 'var(--radius-md)',
+            marginBottom: '1rem',
+            fontSize: '0.85rem',
+          }}
+        >
+          {error}
+        </div>
+      )}
+
       <div className="card" style={{ marginBottom: '1.5rem' }}>
         <h3 style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <Ticket size={18} color="var(--primary)" /> Converter para VT
+          <Plus size={18} color="var(--primary)" /> Adicionar saldo
         </h3>
         <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '1rem' }}>
-          Você pode transferir parte dos seus créditos MoveCorp para o seu cartão Vale-Transporte padrão.
+          O valor é gravado na sua conta MoveCorp e permanece após atualizar a página.
         </p>
 
         <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
-          <button className="btn btn-outline" style={{ padding: '0.5rem' }} onClick={() => setExchangeAmount(50)}>
+          <button className="btn btn-outline" type="button" style={{ padding: '0.5rem' }} onClick={() => setAddAmount(20)}>
+            R$ 20
+          </button>
+          <button className="btn btn-outline" type="button" style={{ padding: '0.5rem' }} onClick={() => setAddAmount(50)}>
             R$ 50
-          </button>
-          <button className="btn btn-outline" style={{ padding: '0.5rem' }} onClick={() => setExchangeAmount(100)}>
-            R$ 100
-          </button>
-          <button
-            className="btn btn-outline"
-            style={{
-              padding: '0.5rem',
-              backgroundColor: 'var(--primary-light)',
-              border: '1px solid var(--primary)',
-              color: 'var(--primary)',
-            }}
-            onClick={() => setExchangeAmount(Math.min(25, balance))}
-          >
-            Personalizado
           </button>
         </div>
 
@@ -89,8 +127,9 @@ export default function Credits() {
             </span>
             <input
               type="number"
-              value={exchangeAmount}
-              onChange={(e) => setExchangeAmount(Number(e.target.value))}
+              value={addAmount === 0 ? '' : addAmount}
+              onChange={(e) => setAddAmount(Number(e.target.value))}
+              placeholder="0,00"
               style={{
                 width: '100%',
                 padding: '0.75rem',
@@ -104,38 +143,82 @@ export default function Credits() {
           </div>
           <button
             className="btn btn-primary"
+            type="button"
+            style={{ width: 'auto', padding: '0.75rem 1rem' }}
+            onClick={handleAddBalance}
+            disabled={busy}
+          >
+            {busy ? '...' : 'Adicionar'}
+          </button>
+        </div>
+      </div>
+
+      <div className="card" style={{ marginBottom: '1.5rem' }}>
+        <h3 style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <Ticket size={18} color="var(--primary)" /> Converter para VT
+        </h3>
+        <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '1rem' }}>
+          Transfere créditos MoveCorp para Vale-Transporte (débito persistente no saldo).
+        </p>
+
+        <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
+          <button className="btn btn-outline" type="button" style={{ padding: '0.5rem' }} onClick={() => setExchangeAmount(50)}>
+            R$ 50
+          </button>
+          <button className="btn btn-outline" type="button" style={{ padding: '0.5rem' }} onClick={() => setExchangeAmount(100)}>
+            R$ 100
+          </button>
+        </div>
+
+        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+          <div style={{ position: 'relative', flex: 1 }}>
+            <span
+              style={{
+                position: 'absolute',
+                left: '1rem',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                color: 'var(--text-secondary)',
+              }}
+            >
+              R$
+            </span>
+            <input
+              type="number"
+              value={exchangeAmount === 0 ? '' : exchangeAmount}
+              onChange={(e) => setExchangeAmount(Number(e.target.value))}
+              placeholder="0,00"
+              style={{
+                width: '100%',
+                padding: '0.75rem',
+                paddingLeft: '2.5rem',
+                borderRadius: 'var(--radius-md)',
+                border: '1px solid var(--border)',
+                fontSize: '1rem',
+                boxSizing: 'border-box',
+              }}
+            />
+          </div>
+          <button
+            className="btn btn-primary"
+            type="button"
             style={{ width: 'auto', padding: '0.75rem 1rem' }}
             onClick={handleExchange}
+            disabled={busy}
           >
             <ArrowRightLeft size={18} />
           </button>
         </div>
       </div>
 
-      <h3>Histórico de Uso</h3>
-      <div style={{ marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', padding: '1rem', borderBottom: '1px solid var(--border)' }}>
-          <div>
-            <p style={{ margin: 0, fontWeight: 'bold', fontSize: '0.9rem' }}>Fretado Diário</p>
-            <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-secondary)' }}>28/03/2026</p>
-          </div>
-          <p style={{ margin: 0, fontWeight: 'bold', color: 'var(--danger)' }}>- R$ 15,00</p>
-        </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', padding: '1rem', borderBottom: '1px solid var(--border)' }}>
-          <div>
-            <p style={{ margin: 0, fontWeight: 'bold', fontSize: '0.9rem' }}>Troca VT</p>
-            <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-secondary)' }}>20/03/2026</p>
-          </div>
-          <p style={{ margin: 0, fontWeight: 'bold', color: 'var(--danger)' }}>- R$ 50,00</p>
-        </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', padding: '1rem', borderBottom: '1px solid var(--border)' }}>
-          <div>
-            <p style={{ margin: 0, fontWeight: 'bold', fontSize: '0.9rem' }}>Recarga Empresa</p>
-            <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-secondary)' }}>01/03/2026</p>
-          </div>
-          <p style={{ margin: 0, fontWeight: 'bold', color: 'var(--secondary)' }}>+ R$ 415,00</p>
-        </div>
-      </div>
+      <button
+        type="button"
+        className="btn btn-outline"
+        onClick={() => navigate('/employee/credits/history')}
+        style={{ width: '100%', marginTop: '0.5rem' }}
+      >
+        Ver histórico de uso
+      </button>
     </div>
   );
 }

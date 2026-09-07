@@ -1,100 +1,146 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Map, Users, CheckCircle, MapPin } from 'lucide-react';
-import { useAppContext } from '../../AppContext';
- 
+import { Bus, Clock, Loader2, MapPin, Users } from 'lucide-react';
+import { useAuth } from '../../auth-context';
+import { fetchDriverAssignments, fetchPassengersForRouteToday } from '../../lib/assignments';
+import { directionLabel } from '../../lib/schedule';
+
 export default function HomeDriver() {
   const navigate = useNavigate();
-  const { driver } = useAppContext();
- 
-  return (
-    <div className="page-transition">
-      <div style={{ marginBottom: '1.5rem' }}>
-        <h1 style={{ fontSize: '1.5rem', marginBottom: '0.2rem' }}>Olá, {driver.name.split(' ')[0]}</h1>
-        <p>{driver.vehicle.model}</p>
+  const { profile } = useAuth();
+  const [assignments, setAssignments] = useState([]);
+  const [passengers, setPassengers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  const primary = assignments[0] || null;
+  const route = primary?.route;
+
+  useEffect(() => {
+    let cancelled = false;
+    if (!profile?.id) return undefined;
+
+    (async () => {
+      setLoading(true);
+      try {
+        const list = await fetchDriverAssignments(profile.id);
+        if (cancelled) return;
+        setAssignments(list);
+        if (list[0]?.route_id) {
+          const pax = await fetchPassengersForRouteToday(list[0].route_id);
+          if (!cancelled) setPassengers(pax);
+        } else {
+          setPassengers([]);
+        }
+      } catch (err) {
+        if (!cancelled) setError(err.message || 'Falha ao carregar jornada.');
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [profile?.id]);
+
+  if (loading) {
+    return (
+      <div className="page-transition" style={{ textAlign: 'center', padding: '3rem' }}>
+        <Loader2 className="spin" size={28} color="var(--secondary)" />
       </div>
- 
-       <div style={{ marginBottom: '1.5rem' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-            <div>
-              <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Rota em Andamento</p>
-              <h2 style={{ margin: 0 }}>{driver.todayRoute.name}</h2>
-            </div>
-            <div style={{ backgroundColor: 'var(--secondary)', color: 'white', padding: '0.5rem', borderRadius: '50%' }}>
-              <Map size={24} />
-            </div>
-          </div>
-          
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.75rem', backgroundColor: 'var(--bg-primary)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)', marginBottom: '1rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <MapPin size={16} color="var(--secondary)" />
-              <span style={{ fontSize: '0.85rem' }}>Região: <strong>{driver.currentRegion}</strong></span>
-            </div>
-            <button 
-              onClick={() => navigate('/driver/region-request')} 
-              className="btn btn-outline" 
-              style={{ width: 'auto', fontSize: '0.75rem', padding: '0.3rem 0.6rem' }}
-            >
-              Alterar
-            </button>
-          </div>
- 
-         
-         <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem', padding: '1rem', backgroundColor: 'var(--bg-primary)', borderRadius: 'var(--radius-md)' }}>
-           <div style={{ flex: 1, textAlign: 'center' }}>
-             <h3 style={{ margin: 0, fontSize: '1.5rem', color: 'var(--secondary)' }}>{driver.todayRoute.checkedIn}</h3>
-             <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Embarcados</p>
-           </div>
-           <div style={{ flex: 1, textAlign: 'center', borderLeft: '1px solid var(--border)', borderRight: '1px solid var(--border)' }}>
-             <h3 style={{ margin: 0, fontSize: '1.5rem', color: 'var(--warning)' }}>
-               {driver.todayRoute.passengersTotal - driver.todayRoute.checkedIn - driver.todayRoute.missing}
-             </h3>
-             <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Restantes</p>
-           </div>
-           <div style={{ flex: 1, textAlign: 'center' }}>
-             <h3 style={{ margin: 0, fontSize: '1.5rem', color: 'var(--danger)' }}>{driver.todayRoute.missing}</h3>
-             <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Ausentes</p>
-           </div>
-         </div>
- 
-         <button 
-           className="btn" 
-           style={{ width: '100%', marginTop: '1.5rem', backgroundColor: 'var(--secondary)', color: 'white', display: 'flex', gap: '0.5rem' }}
-           onClick={() => navigate('/driver/passengers')}
-         >
-           <Users size={20} /> Lista de Check-in
-         </button>
-       </div>
- 
-       <div style={{ marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-         <h3 style={{ marginBottom: 0 }}>Próxima Parada</h3>
-         <button 
-           onClick={() => navigate('/driver/status')} 
-           className="btn btn-outline" 
-           style={{ width: 'auto', fontSize: '0.8rem', padding: '0.4rem 0.8rem' }}
-         >
-           Ver Status
-         </button>
-       </div>
- 
-       {driver.todayRoute.stops.filter(s => s.status !== 'done').map((stop, i) => (
-         <div key={stop.id} className="card" style={{ marginBottom: '1rem', opacity: i === 0 ? 1 : 0.6, borderLeft: i === 0 ? '4px solid var(--secondary)' : '1px solid var(--border)' }}>
-           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-             <div>
-               <p style={{ margin: 0, fontWeight: 'bold' }}>{stop.time} - {stop.address}</p>
-               <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{stop.passengers.length} passageiro(s)</p>
-             </div>
-             {i === 0 && (
-               <button onClick={() => navigate('/driver/map')} style={{ backgroundColor: 'var(--primary-light)', color: 'var(--primary)', border: 'none', padding: '0.5rem', borderRadius: '50%', display: 'flex', cursor: 'pointer' }}>
-                 <Map size={20} />
-               </button>
-             )}
-           </div>
-         </div>
-       ))}
-       <button className="btn btn-outline" style={{ marginTop: '1rem', borderColor: 'var(--danger)', color: 'var(--danger)' }}>
-         Finalizar Rota
-       </button>
-     </div>
-   );
+    );
+  }
+
+  if (!primary) {
+    return (
+      <div className="page-transition">
+        <h1 style={{ fontSize: '1.4rem' }}>Sua jornada</h1>
+        <div className="card" style={{ textAlign: 'center', display: 'grid', gap: '0.75rem' }}>
+          <Bus size={36} color="var(--secondary)" style={{ margin: '0 auto' }} />
+          <h2 style={{ margin: 0, fontSize: '1.15rem' }}>Nenhuma rota assumida</h2>
+          <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '0.95rem' }}>
+            Escolha uma empresa e uma rota. Você ficará responsável por ela de segunda a sexta.
+          </p>
+          <button
+            className="btn btn-primary"
+            type="button"
+            onClick={() => navigate('/driver/claim-route')}
+            style={{ background: 'var(--secondary)', borderColor: 'var(--secondary)' }}
+          >
+            Assumir rota
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="page-transition" style={{ display: 'grid', gap: '1rem' }}>
+      <div>
+        <h1 style={{ fontSize: '1.4rem', marginBottom: '0.25rem' }}>Sua jornada</h1>
+        <p style={{ margin: 0, color: 'var(--text-secondary)' }}>
+          Rota fixa · responsabilidade seg–sex
+        </p>
+      </div>
+
+      {error && (
+        <div
+          style={{
+            background: '#fef2f2',
+            color: '#b91c1c',
+            padding: '0.75rem',
+            borderRadius: 'var(--radius-md)',
+            fontSize: '0.85rem',
+          }}
+        >
+          {error}
+        </div>
+      )}
+
+      <article className="card" style={{ display: 'grid', gap: '0.55rem' }}>
+        <small style={{ color: 'var(--text-secondary)' }}>
+          {directionLabel(route?.direction)} · desde {primary.starts_on}
+        </small>
+        <h2 style={{ margin: 0, fontSize: '1.2rem' }}>{route?.name}</h2>
+        <p style={{ margin: 0, display: 'flex', gap: '0.35rem', alignItems: 'center', fontSize: '0.9rem' }}>
+          <MapPin size={16} /> {route?.destination_label || route?.boarding_stop}
+        </p>
+        <p style={{ margin: 0, display: 'flex', gap: '0.35rem', alignItems: 'center', fontSize: '0.9rem' }}>
+          <Clock size={16} /> Saída {route?.typical_start_time || route?.estimated_arrival}
+        </p>
+        <button className="btn btn-outline" type="button" onClick={() => navigate('/driver/claim-route')}>
+          Trocar rota assumida
+        </button>
+      </article>
+
+      <section className="card">
+        <h3 style={{ marginTop: 0, display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+          <Users size={18} /> Passageiros de hoje ({passengers.length})
+        </h3>
+        {!passengers.length ? (
+          <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+            Ninguém previsto para hoje (fora dos dias presenciais ou todos cancelaram).
+          </p>
+        ) : (
+          <ul style={{ margin: 0, paddingLeft: '1.1rem', display: 'grid', gap: '0.65rem' }}>
+            {passengers.map((p) => (
+              <li key={p.id}>
+                <strong>{p.name}</strong>
+                <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{p.homeAddress}</div>
+              </li>
+            ))}
+          </ul>
+        )}
+        <button
+          className="btn btn-primary"
+          type="button"
+          style={{ marginTop: '1rem', background: 'var(--secondary)', borderColor: 'var(--secondary)' }}
+          onClick={() => navigate('/driver/passengers')}
+        >
+          Ver lista completa
+        </button>
+      </section>
+    </div>
+  );
 }

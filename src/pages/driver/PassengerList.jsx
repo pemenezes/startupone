@@ -1,78 +1,127 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, UserCheck, UserX, UserMinus } from 'lucide-react';
-import { useAppContext } from '../../AppContext';
- 
+import { Loader2, MapPin, Users } from 'lucide-react';
+import { useAuth } from '../../auth-context';
+import { fetchDriverAssignments, fetchPassengersForRouteToday } from '../../lib/assignments';
+
 export default function PassengerList() {
   const navigate = useNavigate();
-  const { driver, updatePassengerStatus } = useAppContext();
-  
-  const [passengers, setPassengers] = useState([
-    { id: 1, name: 'Ana Silva', address: 'Praça Matriz', status: 'pending' },
-    { id: 2, name: 'João Souza', address: 'Praça Matriz', status: 'pending' },
-    { id: 3, name: 'Maria Elena', address: 'Av. Brasil, 440', status: 'pending' },
-    { id: 4, name: 'Lucas', address: 'Rua 7 de Setembro, 12', status: 'missing' }
-  ]);
- 
-  const updateStatus = (id, newStatus) => {
-    setPassengers(passengers.map(p => p.id === id ? { ...p, status: newStatus } : p));
-    
-    // Find the stop and passenger name to update global state
-    const stop = driver.todayRoute.stops.find(s => s.passengers.some(pName => pName === passengers.find(p => p.id === id)?.name));
-    if (stop) {
-      updatePassengerStatus(stop.id, passengers.find(p => p.id === id).name, newStatus);
-    }
-  };
- 
+  const { profile } = useAuth();
+  const [routeName, setRouteName] = useState('');
+  const [passengers, setPassengers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    let cancelled = false;
+    if (!profile?.id) return undefined;
+
+    (async () => {
+      try {
+        const assignments = await fetchDriverAssignments(profile.id);
+        const primary = assignments[0];
+        if (!primary) {
+          if (!cancelled) {
+            setPassengers([]);
+            setRouteName('');
+          }
+          return;
+        }
+        if (!cancelled) setRouteName(primary.route?.name || 'Rota');
+        const pax = await fetchPassengersForRouteToday(primary.route_id);
+        if (!cancelled) setPassengers(pax);
+      } catch (err) {
+        if (!cancelled) setError(err.message || 'Falha ao carregar passageiros.');
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [profile?.id]);
+
+  if (loading) {
+    return (
+      <div className="page-transition" style={{ textAlign: 'center', padding: '3rem' }}>
+        <Loader2 className="spin" size={28} color="var(--secondary)" />
+      </div>
+    );
+  }
+
   return (
-    <div className="page-transition" style={{ paddingBottom: '2rem' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', paddingBottom: '1rem' }}>
-        <button onClick={() => navigate('/driver')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
-          <ArrowLeft size={24} color="var(--text-primary)" />
-        </button>
-        <h2 style={{ fontSize: '1.2rem', margin: 0 }}>Check-in de Passageiros</h2>
-      </div>
- 
-      <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem', overflowX: 'auto', paddingBottom: '0.5rem' }}>
-        <span style={{ backgroundColor: 'var(--bg-secondary)', padding: '0.25rem 0.75rem', borderRadius: 'var(--radius-xl)', fontSize: '0.8rem', whiteSpace: 'nowrap', border: '1px solid var(--border)' }}>Todos (4)</span>
-        <span style={{ backgroundColor: 'var(--primary)', color: 'white', padding: '0.25rem 0.75rem', borderRadius: 'var(--radius-xl)', fontSize: '0.8rem', whiteSpace: 'nowrap' }}>Pendentes (3)</span>
-        <span style={{ backgroundColor: 'var(--bg-secondary)', padding: '0.25rem 0.75rem', borderRadius: 'var(--radius-xl)', fontSize: '0.8rem', whiteSpace: 'nowrap', border: '1px solid var(--border)' }}>Embarcados (0)</span>
-      </div>
- 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-        {passengers.map(p => (
-          <div key={p.id} className="card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem', borderLeft: p.status === 'checked' ? '4px solid var(--secondary)' : p.status === 'missing' ? '4px solid var(--danger)' : '1px solid var(--border)' }}>
-            <div>
-              <p style={{ margin: 0, fontWeight: 'bold' }}>{p.name}</p>
-              <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Parada: {p.address}</p>
+    <div className="page-transition">
+      <h1 style={{ fontSize: '1.4rem', marginBottom: '0.35rem' }}>Passageiros de hoje</h1>
+      <p style={{ marginTop: 0, color: 'var(--text-secondary)' }}>
+        {routeName || 'Sem rota assumida'} · casas dos inscritos no dia
+      </p>
+
+      {error && (
+        <div
+          style={{
+            background: '#fef2f2',
+            color: '#b91c1c',
+            padding: '0.75rem',
+            borderRadius: 'var(--radius-md)',
+            marginBottom: '1rem',
+            fontSize: '0.85rem',
+          }}
+        >
+          {error}
+        </div>
+      )}
+
+      {!routeName ? (
+        <div className="card" style={{ textAlign: 'center' }}>
+          <Users size={36} style={{ opacity: 0.4, margin: '0 auto 0.5rem' }} />
+          <p>Assuma uma rota para ver a lista do dia.</p>
+          <button className="btn btn-primary" type="button" onClick={() => navigate('/driver/claim-route')}>
+            Assumir rota
+          </button>
+        </div>
+      ) : !passengers.length ? (
+        <div className="card">
+          <p style={{ margin: 0, color: 'var(--text-secondary)' }}>Nenhum passageiro previsto para hoje.</p>
+        </div>
+      ) : (
+        <div style={{ display: 'grid', gap: '0.65rem' }}>
+          {passengers.map((p, index) => (
+            <div key={p.id} className="card" style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-start' }}>
+              <span
+                style={{
+                  minWidth: 28,
+                  height: 28,
+                  borderRadius: '50%',
+                  background: 'var(--primary-light)',
+                  color: 'var(--primary)',
+                  display: 'grid',
+                  placeItems: 'center',
+                  fontWeight: 700,
+                  fontSize: '0.85rem',
+                }}
+              >
+                {index + 1}
+              </span>
+              <div>
+                <strong>{p.name}</strong>
+                <p
+                  style={{
+                    margin: '0.2rem 0 0',
+                    fontSize: '0.85rem',
+                    color: 'var(--text-secondary)',
+                    display: 'flex',
+                    gap: '0.3rem',
+                    alignItems: 'center',
+                  }}
+                >
+                  <MapPin size={14} /> {p.homeAddress}
+                </p>
+              </div>
             </div>
-            
-            <div style={{ display: 'flex', gap: '0.5rem' }}>
-              {p.status === 'pending' ? (
-                <>
-                  <button 
-                    onClick={() => updateStatus(p.id, 'missing')}
-                    style={{ backgroundColor: 'var(--danger-light)', color: 'var(--danger)', border: 'none', width: '40px', height: '40px', borderRadius: '50%', display: 'flex', justifyContent: 'center', alignItems: 'center', cursor: 'pointer' }}
-                  >
-                    <UserX size={20} />
-                  </button>
-                  <button 
-                    onClick={() => updateStatus(p.id, 'checked')}
-                    style={{ backgroundColor: '#ccfbf1', color: 'var(--secondary)', border: 'none', width: '40px', height: '40px', borderRadius: '50%', display: 'flex', justifyContent: 'center', alignItems: 'center', cursor: 'pointer' }}
-                  >
-                    <UserCheck size={20} />
-                  </button>
-                </>
-              ) : (
-                <span style={{ fontSize: '0.8rem', fontWeight: 'bold', color: p.status === 'checked' ? 'var(--secondary)' : 'var(--danger)' }}>
-                  {p.status === 'checked' ? 'Embarcou' : 'Faltou'}
-                </span>
-              )}
-            </div>
-          </div>
-        ))}
-      </div>
- 
+          ))}
+        </div>
+      )}
     </div>
   );
 }

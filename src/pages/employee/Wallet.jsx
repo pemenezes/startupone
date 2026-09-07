@@ -1,21 +1,24 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Wallet, PlusCircle, History, ArrowLeft, CreditCard } from 'lucide-react';
-import { useAppContext } from '../../AppContext';
+import { useAppContext } from '../../app-context';
  
 export default function WalletPage() {
   const navigate = useNavigate();
   const { currentEmployee, updateWalletBalance } = useAppContext();
   const [amount, setAmount] = useState('');
  
-  const handleTopUp = (e) => {
+  const handleTopUp = async (e) => {
     e.preventDefault();
     const val = parseFloat(amount);
     if (isNaN(val) || val <= 0) return;
-    
-    updateWalletBalance(currentEmployee.id, val);
-    alert(`Top-up of ${val} StartupCoins successful!`);
-    setAmount('');
+
+    try {
+      await updateWalletBalance(currentEmployee.id, val, 'Recarga de saldo');
+      setAmount('');
+    } catch (err) {
+      alert(err.message || 'Falha ao recarregar.');
+    }
   };
  
   return (

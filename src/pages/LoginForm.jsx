@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, useParams, Link, Navigate } from 'react-router-dom';
 import { ArrowLeft, BusFront, Building2, User, Car } from 'lucide-react';
-import { useAuth, ROLE_BY_LOGIN_PATH, HOME_BY_ROLE } from '../AuthContext';
+import { useAuth, ROLE_BY_LOGIN_PATH, HOME_BY_ROLE } from '../auth-context';
 
 const ROLE_UI = {
   employee: {
@@ -156,6 +156,17 @@ export default function LoginForm() {
               }}
             />
           </label>
+
+          {(roleParam === 'employee' || roleParam === 'driver') && (
+            <div style={{ textAlign: 'right', marginTop: '-0.35rem' }}>
+              <Link
+                to={`/forgot-password/${roleParam}`}
+                style={{ color: 'var(--primary)', fontWeight: 600, fontSize: '0.85rem' }}
+              >
+                Esqueci a senha
+              </Link>
+            </div>
+          )}
 
           {error && (
             <div

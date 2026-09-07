@@ -1,8 +1,8 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import { employeeUser as initialEmployee, driverUser as initialDriver, regions as initialRegions } from './data/mockData';
-import { useAuth } from './AuthContext';
-
-const AppContext = createContext();
+import React, { useEffect, useState } from 'react';
+import { useAuth } from './auth-context';
+import { AppContext } from './app-context';
+import { driverUser as initialDriver, employeeUser as initialEmployee, regions as initialRegions } from './data/mockData';
+import { adjustEmployeeCredits, fetchCreditBalance } from './lib/credits';
 
 const seedEmployee = {
   ...initialEmployee,
@@ -10,77 +10,126 @@ const seedEmployee = {
 };
 
 export function AppProvider({ children }) {
-  const { profile } = useAuth();
+  const { profile, refreshProfile } = useAuth();
 
   const [employees, setEmployees] = useState([seedEmployee]);
   const [activeEmployeeId, setActiveEmployeeId] = useState(seedEmployee.id);
   const [driver, setDriver] = useState(initialDriver);
-  const [regions, setRegions] = useState(initialRegions);
+  const [regions] = useState(initialRegions);
 
-  // Bridge Supabase profile → employee demo state (name / email / id)
+  // Sync logged-in profile into demo state without remounting the router tree.
   useEffect(() => {
-    if (!profile || profile.role !== 'employee') return;
+    if (!profile) return;
 
-    setEmployees((prev) => {
-      const template = prev[0] || seedEmployee;
-      return [
+    if (profile.role === 'employee') {
+      const balance = Number(profile.credit_balance ?? seedEmployee.wallet.balance);
+      setEmployees([
         {
-          ...template,
+          ...seedEmployee,
           id: profile.id,
-          name: profile.full_name || template.name,
-          email: profile.email || template.email,
+          name: profile.full_name || seedEmployee.name,
+          email: profile.email || seedEmployee.email,
+          credits: balance,
+          wallet: {
+            ...seedEmployee.wallet,
+            balance,
+            lastTopUp: profile.credit_last_top_up || seedEmployee.wallet.lastTopUp,
+          },
         },
-      ];
-    });
-    setActiveEmployeeId(profile.id);
+      ]);
+      setActiveEmployeeId(profile.id);
+    }
+
+    if (profile.role === 'driver') {
+      setDriver((current) => ({
+        ...current,
+        name: profile.full_name || current.name,
+        email: profile.email || current.email,
+      }));
+    }
   }, [profile]);
 
-  const currentEmployee = employees.find((e) => e.id === activeEmployeeId) || employees[0];
+  const currentEmployee = employees.find((employee) => employee.id === activeEmployeeId) || employees[0];
 
-  const updateWalletBalance = (employeeId, amount) => {
-    setEmployees((prev) =>
-      prev.map((emp) =>
-        emp.id === employeeId
+  const applyLocalBalance = (employeeId, balance, lastTopUp) => {
+    setEmployees((current) =>
+      current.map((employee) =>
+        employee.id === employeeId
           ? {
-              ...emp,
+              ...employee,
+              credits: balance,
               wallet: {
-                ...emp.wallet,
-                balance: emp.wallet.balance + amount,
-                lastTopUp: new Date().toISOString().split('T')[0],
+                ...employee.wallet,
+                balance,
+                lastTopUp: lastTopUp || employee.wallet.lastTopUp,
               },
             }
-          : emp
+          : employee
       )
     );
   };
 
-  const recordNoShow = (employeeId) => {
-    setEmployees((prev) =>
-      prev.map((emp) => {
-        if (emp.id !== employeeId) return emp;
-        const newNoShows = emp.penalties.noShows + 1;
-        let newStatus = emp.penalties.status;
-        if (newNoShows >= emp.penalties.nextPenaltyAt) {
-          newStatus = 'suspended';
-        } else if (newNoShows > 0) {
-          newStatus = 'warning';
+  const updateWalletBalance = async (employeeId, amount, title) => {
+    // Persist for real logged-in employees (UUID from Supabase)
+    const isUuid = typeof employeeId === 'string' && employeeId.includes('-') && employeeId.length > 30;
+
+    if (isUuid) {
+      const result = await adjustEmployeeCredits(employeeId, amount, title);
+      applyLocalBalance(employeeId, result.balance, result.lastTopUp);
+      if (typeof refreshProfile === 'function') {
+        try {
+          await refreshProfile();
+        } catch {
+          /* local state already updated */
         }
+      }
+      return result;
+    }
+
+    // Fallback for mock / offline demo ids
+    const employee = employees.find((e) => e.id === employeeId) || currentEmployee;
+    const next = Number(((employee?.wallet?.balance || 0) + amount).toFixed(2));
+    applyLocalBalance(employeeId, next, amount > 0 ? new Date().toISOString().slice(0, 10) : undefined);
+    return { balance: next };
+  };
+
+  const reloadWallet = async (employeeId) => {
+    const id = employeeId || activeEmployeeId;
+    if (!id || !String(id).includes('-')) return;
+    const data = await fetchCreditBalance(id);
+    applyLocalBalance(id, data.balance, data.lastTopUp);
+    return data;
+  };
+
+  const recordNoShow = (employeeId) => {
+    setEmployees((current) =>
+      current.map((employee) => {
+        if (employee.id !== employeeId) return employee;
+        const noShows = employee.penalties.noShows + 1;
         return {
-          ...emp,
-          penalties: { ...emp.penalties, noShows: newNoShows, status: newStatus },
+          ...employee,
+          penalties: {
+            ...employee.penalties,
+            noShows,
+            warnings: noShows,
+            status: noShows >= employee.penalties.nextPenaltyAt ? 'suspended' : 'warning',
+          },
         };
       })
     );
   };
 
   const updatePassengerStatus = (stopId, passengerName, status) => {
-    setDriver((prev) => ({
-      ...prev,
+    setDriver((current) => ({
+      ...current,
       todayRoute: {
-        ...prev.todayRoute,
-        stops: prev.todayRoute.stops.map((stop) =>
+        ...current.todayRoute,
+        stops: current.todayRoute.stops.map((stop) =>
           stop.id === stopId
-            ? { ...stop, status: stop.status === 'next' && status === 'checked' ? 'done' : stop.status }
+            ? {
+                ...stop,
+                passengerStatuses: { ...stop.passengerStatuses, [passengerName]: status },
+              }
             : stop
         ),
       },
@@ -88,28 +137,32 @@ export function AppProvider({ children }) {
   };
 
   const addDriverPenalty = (severity) => {
-    setDriver((prev) => ({
-      ...prev,
+    setDriver((current) => ({
+      ...current,
       penalties: {
-        ...prev.penalties,
-        level: Math.min(prev.penalties.level + 1, 4),
+        ...current.penalties,
+        level: Math.min(current.penalties.level + 1, 4),
         history: [
-          ...prev.penalties.history,
-          { date: new Date().toLocaleDateString(), type: 'Infração de Rota', severity },
+          ...current.penalties.history,
+          { date: new Date().toLocaleDateString('pt-BR'), type: 'Infração de rota', severity },
         ],
       },
     }));
   };
 
-  const importEmployees = (newList) => {
-    setEmployees((prev) => [...prev, ...newList]);
+  const importEmployees = (newEmployees) => {
+    setEmployees((current) => {
+      const knownIds = new Set(current.map((employee) => employee.id));
+      return [...current, ...newEmployees.filter((employee) => !knownIds.has(employee.id))];
+    });
   };
 
   const distributeCredits = (amount) => {
-    setEmployees((prev) =>
-      prev.map((emp) => ({
-        ...emp,
-        wallet: { ...emp.wallet, balance: emp.wallet.balance + amount },
+    setEmployees((current) =>
+      current.map((employee) => ({
+        ...employee,
+        credits: (employee.credits ?? employee.wallet.balance) + amount,
+        wallet: { ...employee.wallet, balance: employee.wallet.balance + amount },
       }))
     );
   };
@@ -121,6 +174,7 @@ export function AppProvider({ children }) {
     driver,
     regions,
     updateWalletBalance,
+    reloadWallet,
     recordNoShow,
     updatePassengerStatus,
     addDriverPenalty,
@@ -129,12 +183,4 @@ export function AppProvider({ children }) {
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
-}
-
-export function useAppContext() {
-  const context = useContext(AppContext);
-  if (!context) {
-    throw new Error('useAppContext must be used within an AppProvider');
-  }
-  return context;
 }

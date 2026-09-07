@@ -79,7 +79,131 @@ values
 
 Replace the three UUIDs with the real ones from the dashboard.
 
-## 4. App flow
+## Recurring routes V1
+
+Run [`recurring_routes_v1.sql`](./recurring_routes_v1.sql) after companies/drivers/routes are in place.
+
+Model:
+
+- **regions** + `profiles.region_id`
+- **routes** with `direction` (`outbound` / `return`), `destination_label`, `typical_start_time`
+- **driver_route_assignments** — motorista assume empresa+rota (responsável seg–sex)
+- **employee_route_subscriptions** — funcionário escolhe rota + `weekdays`
+- **attendance_exceptions** — cancelar **só o dia**
+
+App flow:
+
+1. Employee: empresa → endereços → região → rota (ida/volta) + dias  
+2. Driver: Assumir rota → vê passageiros previstos hoje  
+3. Home employee: mostra viagens **de hoje** a partir do calendário  
+
+## Notification preferences
+
+Run [`employee_notification_prefs.sql`](./employee_notification_prefs.sql) once to add `profiles.notification_prefs`.
+
+Employee **Perfil → Preferências de notificação** toggles which categories appear in the bell panel. Prefs also save to `localStorage` so the UI works even before the SQL is applied.
+
+## Employee profile fields
+
+Run [`employee_profile_fields.sql`](./employee_profile_fields.sql) once to add `profiles.department` (setor).
+
+The employee **Perfil** screen then shows:
+
+- name / e-mail from `profiles`
+- company name from `companies` via `company_id`
+- setor from `profiles.department` (or “Não informado”)
+- chapa derived from the user id
+
+To set a department for a user:
+
+```sql
+update public.profiles
+set department = 'Tecnologia'
+where email = 'user@example.com';
+```
+
+## Forgot password (employee / driver)
+
+No SQL required. Configure once in **Authentication → URL Configuration**:
+
+### Site URL
+Use the **production** app URL (not localhost:3000):
+
+- `https://startupone-phi.vercel.app`
+
+(Watch the spelling: `startupone`, not `startupon`.)
+
+### Redirect URLs
+Exact entries:
+
+- `http://localhost:5173/reset-password`
+- `https://startupone-phi.vercel.app/reset-password`
+- Optional: `https://startupone-phi.vercel.app/**`
+
+### Vercel SPA routing
+This project includes [`vercel.json`](../vercel.json) so deep links like `/reset-password` serve `index.html` (avoids Vercel `404: NOT_FOUND`). Redeploy after adding it.
+
+### App flow
+1. `/login/employee` or `/login/driver` → **Esqueci a senha**
+2. `/forgot-password/:role` → `resetPasswordForEmail` with `redirectTo` → `/reset-password`
+3. User opens the **newest** e-mail link once → sets password → login
+
+If the URL hash contains `error_code=otp_expired`, the link was already used, expired, or prefetched by the mail client — request a fresh e-mail after waiting out rate limits.
+
+## Persistent employee credits
+
+Run [`employee_credits.sql`](./employee_credits.sql).
+
+- `profiles.credit_balance` — saldo por funcionário  
+- `credit_transactions` — histórico (adição / troca VT / etc.)
+
+The Credits screen reads/writes these so the balance survives refresh and is per logged-in user.
+
+## Employee onboarding + trips
+
+1. Run [`drivers_and_reviews.sql`](./drivers_and_reviews.sql) (if not done).
+2. Run [`employee_onboarding_and_trips.sql`](./employee_onboarding_and_trips.sql).
+
+Flow: login as employee → pick company → home/work addresses → choose route → home unlocks Acompanhar / Cancelar.
+
+Optional: link a driver to routes:
+
+```sql
+update public.routes
+set driver_id = 'PASTE_DRIVER_UUID'
+where name like 'Linha Centro%';
+```
+
+## Drivers registry + reviews
+
+Run [`drivers_and_reviews.sql`](./drivers_and_reviews.sql) in the Supabase SQL Editor once.
+
+After that:
+
+1. Any user with `profiles.role = 'driver'` gets a row in `public.drivers` (backfill + trigger).
+2. Employees open **Avaliar motorista** and see **real** driver name + vehicle from the DB.
+3. Submitting a review inserts into `driver_reviews` and updates `rating_average` / `rating_count`.
+
+### Optional: set vehicle details for an existing driver
+
+```sql
+update public.drivers
+set
+  vehicle_model = 'Mercedes Sprinter',
+  vehicle_plate = 'ABC-1234',
+  vehicle_color = 'Branca',
+  vehicle_capacity = 15,
+  photo_url = 'https://i.pravatar.cc/150?u=driver1'
+where id = 'PASTE_DRIVER_USER_UUID';
+```
+
+Get the UUID from **Authentication → Users** (or `select id, email from profiles where role = 'driver';`).
+
+### App files
+
+- [`src/lib/drivers.js`](../src/lib/drivers.js) — fetch / submit
+- [`src/pages/employee/ReviewDriver.jsx`](../src/pages/employee/ReviewDriver.jsx) — UI
+
 
 1. `/login` — pick role  
 2. `/login/employee` | `/login/driver` | `/login/company` — email/password  
