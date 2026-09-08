@@ -1,0 +1,30 @@
+.driver-shell { padding-bottom: 90px; background: #f0fdf4; }
+.driver-header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 1rem; background: #047857; color: white; border-radius: 0 0 1rem 1rem; }
+.driver-header h2 { color: white; font-size: 1.1rem; }
+.driver-header span { overflow-wrap: anywhere; font-size: .9rem; }
+.driver-header .header-actions { flex-shrink: 0; }
+.driver-main { padding: 1rem; }
+.driver-stack { display: grid; gap: .85rem; min-width: 0; }
+.driver-shell h1 { font-size: 1.5rem; }
+.driver-shell h2 { font-size: 1.1rem; }
+.driver-shell p, .driver-shell dd { overflow-wrap: anywhere; }
+.driver-shell p { color: #475569; }
+.driver-shell .btn-primary { background: #047857; color: white; }
+.driver-shell .btn-primary:hover { background: #065f46; }
+.driver-shell .btn { min-height: 44px; gap: .5rem; white-space: normal; text-decoration: none; }
+.driver-shell button:disabled { opacity: .6; cursor: not-allowed; }
+.driver-shell input, .driver-shell select { width: 100%; min-width: 0; min-height: 44px; border: 1px solid #94a3b8; border-radius: .5rem; padding: .7rem; font: inherit; background: white; color: #1e293b; }
+.driver-shell :is(button, a, input, select):focus-visible { outline: 3px solid #2563eb; outline-offset: 3px; }
+.driver-details { display: grid; gap: .7rem; }
+.driver-details > div { display: grid; gap: .15rem; }
+.driver-details dt { font-size: .85rem; color: #475569; }
+.driver-details dd { font-weight: 600; }
+.driver-badge { width: fit-content; font-size: .8rem; border-radius: .5rem; padding: .25rem .5rem; background: #ecfdf5; color: #065f46; font-weight: 600; }
+.driver-total { font-size: 2rem; color: #047857; }
+.driver-loading { display: flex; align-items: center; justify-content: center; gap: .7rem; padding: 1.5rem; }
+.driver-error { display: grid; gap: .75rem; background: #fef2f2; border-color: #fecaca; }
+.driver-error p, .driver-logout-error { color: #991b1b; }
+.driver-logout-error { background: #fef2f2; padding: .5rem; font-size: .8rem; }
+.driver-passengers { list-style: none; display: grid; gap: .75rem; }
+.driver-notifications { margin: 1rem; display: grid; gap: .75rem; }
+@media (prefers-reduced-motion: reduce) { .driver-shell .page-transition, .driver-shell .spin { animation: none; } }

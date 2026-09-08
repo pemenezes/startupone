@@ -64,5 +64,14 @@ export async function fetchRouteById(routeId) {
 }
 
 export async function fetchClaimableRoutes(companyId) {
-  return fetchRoutesForCompany(companyId);
+  const { data: routes, error } = await supabase.from('routes')
+    .select(ROUTE_SELECT).eq('company_id', companyId).eq('active', true).order('name');
+  if (error) throw error;
+  if (!routes.length) return [];
+  const { data: assignments, error: assignmentError } = await supabase.from('driver_route_assignments')
+    .select('route_id, driver_id').eq('active', true).in('route_id', routes.map((route) => route.id));
+  if (assignmentError) throw assignmentError;
+  return routes.map((route) => ({ ...route,
+    activeDriverId: assignments.find((a) => a.route_id === route.id)?.driver_id || null,
+  }));
 }
