@@ -1,127 +1,28 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Loader2, MapPin, Users } from 'lucide-react';
-import { useAuth } from '../../auth-context';
-import { fetchDriverAssignments, fetchPassengersForRouteToday } from '../../lib/assignments';
+import { useState } from 'react';
+import { Link } from 'react-router-dom';
+import { useDriver } from './driver-context';
+import { DriverBack, DriverEmpty, DriverError, DriverLoading } from './DriverUI';
 
 export default function PassengerList() {
-  const navigate = useNavigate();
-  const { profile } = useAuth();
-  const [routeName, setRouteName] = useState('');
-  const [passengers, setPassengers] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-
-  useEffect(() => {
-    let cancelled = false;
-    if (!profile?.id) return undefined;
-
-    (async () => {
-      try {
-        const assignments = await fetchDriverAssignments(profile.id);
-        const primary = assignments[0];
-        if (!primary) {
-          if (!cancelled) {
-            setPassengers([]);
-            setRouteName('');
-          }
-          return;
-        }
-        if (!cancelled) setRouteName(primary.route?.name || 'Rota');
-        const pax = await fetchPassengersForRouteToday(primary.route_id);
-        if (!cancelled) setPassengers(pax);
-      } catch (err) {
-        if (!cancelled) setError(err.message || 'Falha ao carregar passageiros.');
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [profile?.id]);
-
-  if (loading) {
-    return (
-      <div className="page-transition" style={{ textAlign: 'center', padding: '3rem' }}>
-        <Loader2 className="spin" size={28} color="var(--secondary)" />
-      </div>
-    );
-  }
-
-  return (
-    <div className="page-transition">
-      <h1 style={{ fontSize: '1.4rem', marginBottom: '0.35rem' }}>Passageiros de hoje</h1>
-      <p style={{ marginTop: 0, color: 'var(--text-secondary)' }}>
-        {routeName || 'Sem rota assumida'} · casas dos inscritos no dia
-      </p>
-
-      {error && (
-        <div
-          style={{
-            background: '#fef2f2',
-            color: '#b91c1c',
-            padding: '0.75rem',
-            borderRadius: 'var(--radius-md)',
-            marginBottom: '1rem',
-            fontSize: '0.85rem',
-          }}
-        >
-          {error}
-        </div>
-      )}
-
-      {!routeName ? (
-        <div className="card" style={{ textAlign: 'center' }}>
-          <Users size={36} style={{ opacity: 0.4, margin: '0 auto 0.5rem' }} />
-          <p>Assuma uma rota para ver a lista do dia.</p>
-          <button className="btn btn-primary" type="button" onClick={() => navigate('/driver/claim-route')}>
-            Assumir rota
-          </button>
-        </div>
-      ) : !passengers.length ? (
-        <div className="card">
-          <p style={{ margin: 0, color: 'var(--text-secondary)' }}>Nenhum passageiro previsto para hoje.</p>
-        </div>
-      ) : (
-        <div style={{ display: 'grid', gap: '0.65rem' }}>
-          {passengers.map((p, index) => (
-            <div key={p.id} className="card" style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-start' }}>
-              <span
-                style={{
-                  minWidth: 28,
-                  height: 28,
-                  borderRadius: '50%',
-                  background: 'var(--primary-light)',
-                  color: 'var(--primary)',
-                  display: 'grid',
-                  placeItems: 'center',
-                  fontWeight: 700,
-                  fontSize: '0.85rem',
-                }}
-              >
-                {index + 1}
-              </span>
-              <div>
-                <strong>{p.name}</strong>
-                <p
-                  style={{
-                    margin: '0.2rem 0 0',
-                    fontSize: '0.85rem',
-                    color: 'var(--text-secondary)',
-                    display: 'flex',
-                    gap: '0.3rem',
-                    alignItems: 'center',
-                  }}
-                >
-                  <MapPin size={14} /> {p.homeAddress}
-                </p>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
+  const { journey, passengers, assignment, status } = useDriver();
+  const [search, setSearch] = useState('');
+  const list = passengers.data || [];
+  const normalize = (value) => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('pt-BR');
+  const filtered = list.filter((p) => normalize(p.name).includes(normalize(search.trim())));
+  return <div className="page-transition driver-stack">
+    <DriverBack /><h1>Passageiros de hoje</h1>
+    {journey.loading ? <DriverLoading /> : journey.error ? <DriverError error={journey.error} onRetry={journey.refresh} /> :
+      !assignment ? <DriverEmpty title="Sem rota assumida"><Link className="btn btn-primary" to="/driver/claim-route">Assumir rota</Link></DriverEmpty> :
+      status !== 'scheduled' ? <DriverEmpty title="Sem operação prevista hoje"><p>Consulte a vigência e os dias da rota na jornada.</p></DriverEmpty> :
+      <><h2>{assignment.route.name}</h2><p>Passageiros previstos, em ordem alfabética. Esta lista ainda não define a sequência de paradas nem registra presença.</p>
+        {passengers.loading ? <DriverLoading>Carregando passageiros...</DriverLoading> : passengers.error ? <DriverError error={passengers.error} onRetry={passengers.refresh} /> :
+          <><label className="driver-stack">Buscar por nome<input type="search" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Nome do passageiro" /></label>
+            <p role="status">{filtered.length} de {list.length} passageiro(s)</p>
+            {!list.length ? <DriverEmpty title="Nenhum passageiro previsto"><p>Os inscritos não estão agendados para hoje ou cancelaram o dia.</p></DriverEmpty> :
+              !filtered.length ? <DriverEmpty title="Nenhum resultado"><p>Tente outro nome.</p></DriverEmpty> :
+                <ul className="driver-passengers">{filtered.map((p) => <li className="card driver-stack" key={p.id}><strong>{p.name}</strong><span className="driver-badge">Previsto</span><p>Endereço residencial: {p.homeAddress}</p></li>)}</ul>}
+          </>}
+        <button className="btn btn-outline" type="button" onClick={passengers.refresh} disabled={passengers.loading}>Atualizar passageiros</button>
+      </>}
+  </div>;
 }

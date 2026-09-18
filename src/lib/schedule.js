@@ -1,11 +1,15 @@
 /** ISO weekday: 1=Mon ... 7=Sun */
 export function isoWeekday(date = new Date()) {
-  const js = date.getDay();
+  const js = new Date(`${todayISO(date)}T12:00:00Z`).getUTCDay();
   return js === 0 ? 7 : js;
 }
 
 export function todayISO(date = new Date()) {
-  return date.toISOString().slice(0, 10);
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/Sao_Paulo', year: 'numeric', month: '2-digit', day: '2-digit',
+  }).formatToParts(date);
+  const value = (type) => parts.find((part) => part.type === type).value;
+  return `${value('year')}-${value('month')}-${value('day')}`;
 }
 
 export function parseWeekdays(raw) {

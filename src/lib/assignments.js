@@ -1,63 +1,29 @@
 import { supabase } from './supabase';
-import { fetchRouteById } from './routes';
 import { isWeekdayScheduled, todayISO } from './schedule';
 
 export async function fetchDriverAssignments(driverId) {
   const { data, error } = await supabase
     .from('driver_route_assignments')
-    .select('id, driver_id, route_id, active, starts_on')
+    .select('id, driver_id, route_id, active, starts_on, route:routes(id, name, active, direction, boarding_stop, destination_label, typical_start_time, estimated_arrival, company:companies(name))')
     .eq('driver_id', driverId)
     .eq('active', true)
     .order('created_at', { ascending: false });
 
   if (error) throw error;
 
-  return Promise.all(
-    (data || []).map(async (row) => ({
-      ...row,
-      route: await fetchRouteById(row.route_id),
-    }))
-  );
+  return data || [];
 }
 
 export async function claimDriverRoute(driverId, routeId) {
-  await supabase
-    .from('driver_route_assignments')
-    .update({ active: false })
-    .eq('driver_id', driverId)
-    .eq('active', true);
-
-  const { data: existing } = await supabase
-    .from('driver_route_assignments')
-    .select('id')
-    .eq('driver_id', driverId)
-    .eq('route_id', routeId)
-    .maybeSingle();
-
-  if (existing?.id) {
-    const { data, error } = await supabase
-      .from('driver_route_assignments')
-      .update({ active: true, starts_on: todayISO() })
-      .eq('id', existing.id)
-      .select('id, driver_id, route_id, active, starts_on')
-      .single();
-    if (error) throw error;
-    return { ...data, route: await fetchRouteById(routeId) };
+  if (!driverId || !routeId) throw new Error('Identifique o motorista e a rota.');
+  // The database derives the driver from auth.uid() and performs the entire swap atomically.
+  // Never fall back to separate updates if the RPC is not installed.
+  const { data, error } = await supabase.rpc('claim_driver_route', { p_route_id: routeId });
+  if (error?.code === 'PGRST202' || error?.code === '42883') {
+    throw new Error('A troca de rota ainda não está disponível. A operação precisa habilitar este recurso.');
   }
-
-  const { data, error } = await supabase
-    .from('driver_route_assignments')
-    .insert({
-      driver_id: driverId,
-      route_id: routeId,
-      active: true,
-      starts_on: todayISO(),
-    })
-    .select('id, driver_id, route_id, active, starts_on')
-    .single();
-
-  if (error) throw error;
-  return { ...data, route: await fetchRouteById(routeId) };
+  if (error) throw new Error(error.code === 'P0001' ? error.message : 'Não foi possível confirmar a troca. Atualize a jornada para conferir sua atribuição antes de tentar novamente.');
+  return data;
 }
 
 export async function fetchPassengersForRouteToday(routeId, date = new Date()) {
@@ -99,10 +65,13 @@ export async function fetchPassengersForRouteToday(routeId, date = new Date()) {
 
   if (pError) throw pError;
 
+  if ((profiles || []).length !== new Set(presentIds).size) {
+    throw new Error('Não foi possível consultar todos os passageiros previstos. Tente novamente ou consulte a operação.');
+  }
   return (profiles || []).map((p) => ({
     id: p.id,
     name: p.full_name || p.email || 'Funcionário',
-    homeAddress: p.home_address || 'Endereço não informado',
+    homeAddress: p.home_address?.trim() || 'Endereço não informado',
     email: p.email,
-  }));
+  })).sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
 }
