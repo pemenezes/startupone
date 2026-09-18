@@ -9,6 +9,12 @@ export default function HomeDriver() {
   const route = assignment?.route;
   return <div className="page-transition driver-stack">
     <div><h1>Sua jornada</h1><p>{formatDriverDate(day)} · Horário de Brasília</p></div>
+    <section className="card driver-stack">
+      <span className="driver-badge">Mapa da rota</span>
+      <h2>Seu caminho, parada a parada</h2>
+      <p>Acompanhe as paradas e confirme o embarque dos passageiros.</p>
+      <Link className="btn btn-primary" to="/driver/map">Abrir mapa interativo</Link>
+    </section>
     {journey.loading ? <DriverLoading>Carregando jornada...</DriverLoading> : journey.error ?
       <DriverError error={journey.error} onRetry={journey.refresh} /> : !assignment ?
       <DriverEmpty title="Nenhuma rota assumida"><p>Escolha uma empresa e uma rota para consultar sua operação de segunda a sexta.</p><Link className="btn btn-primary" to="/driver/claim-route">Assumir rota</Link></DriverEmpty> :
@@ -24,7 +30,6 @@ export default function HomeDriver() {
           </dl>
           <p>Responsabilidade de segunda a sexta. Os horários são previstos; a execução da viagem ainda não é registrada.</p>
           <Link className="btn btn-outline" to="/driver/claim-route">Trocar rota assumida</Link>
-          <Link className="btn btn-outline" to="/driver/map">Mapa da jornada</Link>
         </section>
         {status !== 'scheduled' ? <DriverEmpty title="Sem operação prevista hoje"><p>{status === 'future' ? `Sua atribuição começa em ${formatDriverDate(assignment.starts_on)}.` : 'A responsabilidade desta rota é de segunda a sexta.'}</p></DriverEmpty> :
           <section className="card driver-stack"><h2>Passageiros previstos hoje</h2>
