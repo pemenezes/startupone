@@ -106,8 +106,8 @@ export default function CancelTrip() {
       {error && (
         <div
           style={{
-            background: '#fef2f2',
-            color: '#b91c1c',
+            background: 'var(--danger-light)',
+            color: 'var(--danger)',
             padding: '0.75rem',
             borderRadius: 'var(--radius-md)',
             marginBottom: '1rem',

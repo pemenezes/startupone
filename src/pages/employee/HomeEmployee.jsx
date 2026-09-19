@@ -14,15 +14,12 @@ import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../../app-context';
 import { useTrip } from '../../TripContext';
 import { useAuth } from '../../auth-context';
-
-const statusByRoute = {
-  delayed: { label: 'Atraso previsto', className: 'status-badge status-badge--warning' },
-  en_route: { label: 'Van a caminho', className: 'status-badge status-badge--success' },
-  on_time: { label: 'No horário', className: 'status-badge status-badge--success' },
-};
+import { employeeAttendanceCopy } from '../../lib/driverAttendanceState';
+import { EXAMPLE_ROUTE, EXAMPLE_PASSENGER_ID, examplePassengerStatus } from '../../lib/exampleJourney';
+import { useExampleJourney } from '../../lib/useExampleJourney';
 
 function penaltyStorageKey(employeeId, noShows) {
-  return `movecorp:penalty-dismissed:${employeeId}:${noShows}`;
+  return `comfy:penalty-dismissed:${employeeId}:${noShows}`;
 }
 
 function getWarningCopy(penalties) {
@@ -48,7 +45,9 @@ export default function HomeEmployee() {
   const navigate = useNavigate();
   const { currentEmployee } = useAppContext();
   const { profile } = useAuth();
-  const { hasActiveTrip, hasSubscription, onboardingComplete, expectedToday } = useTrip();
+  const example = useExampleJourney();
+  const exampleStatus = examplePassengerStatus(example, EXAMPLE_PASSENGER_ID);
+  const { hasActiveTrip, hasSubscription, onboardingComplete, expectedToday, todayRides, journeyStatuses, journeyStatusError, refreshTrip } = useTrip();
 
   const penalties = currentEmployee.penalties;
   const suspended = penalties.status === 'suspended';
@@ -70,7 +69,7 @@ export default function HomeEmployee() {
   }, [storageKey, penalties.status]);
 
   const showNotice = penalties.status !== 'stable' && !dismissed;
-  const status = statusByRoute.on_time;
+  const cancelledToday = todayRides.filter((ride) => ride.cancelledToday);
 
   const handleDismiss = () => {
     localStorage.setItem(storageKey, '1');
@@ -93,6 +92,8 @@ export default function HomeEmployee() {
           </span>
         </button>
       </section>
+
+      <section className="card example-employee-home-card" aria-label="Viagem de exemplo"><div><span className="eyebrow">Exemplo interativo</span><h2>{EXAMPLE_ROUTE.name}</h2><p>{exampleStatus === 'boarded' ? 'Embarque de Ana confirmado pelo motorista.' : exampleStatus === 'absent' ? 'Ausência de Ana registrada pelo motorista.' : example.startedAt ? 'Jornada em andamento; Ana aguarda o embarque.' : 'Veja como o passageiro acompanha a jornada.'}</p></div><button className="btn btn-outline" type="button" onClick={() => navigate('/employee/example')}>Ver viagem de exemplo</button></section>
 
       {showNotice && (
         <div className={suspended ? 'notice-card notice-card--danger' : 'notice-card notice-card--warning'}>
@@ -138,9 +139,9 @@ export default function HomeEmployee() {
       ) : !hasActiveTrip ? (
         <div className="card" style={{ textAlign: 'center', padding: '1.75rem 1.25rem', display: 'grid', gap: '0.75rem' }}>
           <RouteIcon size={36} color="var(--primary)" style={{ margin: '0 auto' }} />
-          <h2 style={{ margin: 0, fontSize: '1.2rem' }}>Sem fretado hoje</h2>
+          <h2 style={{ margin: 0, fontSize: '1.2rem' }}>{cancelledToday.length ? 'Viagem cancelada hoje' : 'Sem fretado hoje'}</h2>
           <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '0.95rem' }}>
-            Hoje não está nos seus dias presenciais (ou você cancelou o dia). Seu plano semanal continua ativo.
+            {cancelledToday.length ? 'Seu cancelamento foi registrado. Seu plano semanal continua ativo.' : 'Hoje não está nos seus dias presenciais. Seu plano semanal continua ativo.'}
           </p>
           <button
             className="btn btn-outline"
@@ -159,6 +160,8 @@ export default function HomeEmployee() {
           {expectedToday.map((ride) => {
             const r = ride.route;
             const d = r?.driver;
+            const attendance = journeyStatuses.find((item) => item.journey?.route_id === ride.route_id);
+            const liveStatus = employeeAttendanceCopy(attendance);
             return (
               <article key={ride.id} className="card journey-card" style={{ marginBottom: '0.75rem' }}>
                 <header>
@@ -166,7 +169,7 @@ export default function HomeEmployee() {
                     <small>{r?.direction === 'return' ? 'Volta' : 'Ida'}</small>
                     <h2>{r?.name}</h2>
                   </div>
-                  <span className={status.className}>{status.label}</span>
+                  <span className={liveStatus.className}>{liveStatus.label}</span>
                 </header>
                 <div className="journey-time">
                   <span>
@@ -213,6 +216,8 @@ export default function HomeEmployee() {
               </article>
             );
           })}
+          {cancelledToday.map((ride) => <div key={ride.id} className="notice-card notice-card--warning"><Navigation size={20} /><span><strong>{ride.route?.name}</strong><small>Viagem cancelada hoje</small></span></div>)}
+          {journeyStatusError && <div className="notice-card notice-card--warning"><AlertTriangle size={20} /><span><strong>Situação temporariamente indisponível</strong><small>{journeyStatusError.message}</small></span><button type="button" onClick={refreshTrip}>Tentar novamente</button></div>}
           <div className="journey-actions" style={{ display: 'grid', gap: '0.5rem' }}>
             <button className="btn btn-primary" type="button" onClick={() => navigate('/employee/track')}>
               <Navigation size={18} /> Acompanhar van

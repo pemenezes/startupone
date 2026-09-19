@@ -1,4 +1,4 @@
--- MoveCorp: 3 example logins for local / demo testing
+-- Comfy: 3 example logins for local / demo testing
 -- Run this in Supabase → SQL Editor → New query → Run
 --
 -- Logins after running:

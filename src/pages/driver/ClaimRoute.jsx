@@ -60,9 +60,12 @@ function CompanyRoutes({ companyId, onBusy }) {
 }
 
 export default function ClaimRoute() {
+  const { operation, operationState } = useDriver();
   const companies = useDriverResource(fetchCompanies);
   const [companyId, setCompanyId] = useState('');
   const [busy, setBusy] = useState(false);
+  if (operation.loading) return <div className="driver-stack"><DriverBack /><DriverLoading>Verificando jornada em andamento...</DriverLoading></div>;
+  if (operationState === 'in_progress') return <div className="driver-stack"><DriverBack /><DriverEmpty title="Conclua a jornada atual"><p>A rota não pode ser trocada enquanto uma jornada estiver em andamento.</p><Link className="btn btn-primary" to="/driver">Retomar jornada</Link></DriverEmpty></div>;
   return <div className="page-transition driver-stack">
     <DriverBack /><h1>Assumir rota</h1>
     <p>Escolha a empresa e a rota de segunda a sexta. Ao concluir a troca, a nova rota substitui a anterior.</p>

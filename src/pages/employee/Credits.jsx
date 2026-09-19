@@ -60,7 +60,7 @@ export default function Credits() {
           color: 'white',
           border: 'none',
           marginBottom: '1.5rem',
-          backgroundImage: 'linear-gradient(135deg, var(--primary) 0%, #1e3a8a 100%)',
+          backgroundImage: 'linear-gradient(135deg, var(--primary) 0%, var(--brand-primary-deep) 100%)',
         }}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', color: '#fff' }}>
@@ -83,8 +83,8 @@ export default function Credits() {
       {error && (
         <div
           style={{
-            background: '#fef2f2',
-            color: '#b91c1c',
+            background: 'var(--danger-light)',
+            color: 'var(--danger)',
             padding: '0.75rem',
             borderRadius: 'var(--radius-md)',
             marginBottom: '1rem',
@@ -100,7 +100,7 @@ export default function Credits() {
           <Plus size={18} color="var(--primary)" /> Adicionar saldo
         </h3>
         <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '1rem' }}>
-          O valor é gravado na sua conta MoveCorp e permanece após atualizar a página.
+          O valor é gravado na sua conta Comfy e permanece após atualizar a página.
         </p>
 
         <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
@@ -158,7 +158,7 @@ export default function Credits() {
           <Ticket size={18} color="var(--primary)" /> Converter para VT
         </h3>
         <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '1rem' }}>
-          Transfere créditos MoveCorp para Vale-Transporte (débito persistente no saldo).
+          Transfere créditos Comfy para Vale-Transporte (débito persistente no saldo).
         </p>
 
         <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>

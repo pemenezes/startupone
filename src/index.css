@@ -1,27 +1,42 @@
 :root {
-  /* Colors - MoveCorp Dark/Modern Theme */
-  --bg-primary: #f8fafc; /* Light Gray for App Background */
-  --bg-secondary: #ffffff; /* White for Cards */
-  --bg-dark: #0f172a; /* Slate 900 for Admin Dashboard / Headers */
-  --bg-dark-secondary: #1e293b; /* Slate 800 */
-  
-  --primary: #2563eb; /* Blue 600 - Main Brand Color */
-  --primary-hover: #1d4ed8;
-  --primary-light: #eff6ff;
-  
-  --secondary: #10b981; /* Emerald 500 - Success, Go, Active */
-  --secondary-hover: #059669;
-  
-  --danger: #ef4444; /* Red 500 - Cancel, Penalty, Missing */
-  --danger-light: #fef2f2;
-  
-  --warning: #f59e0b; /* Amber 500 - Delay, Warning */
-  
-  --text-primary: #1e293b;
-  --text-secondary: #64748b;
+  /* Comfy brand and semantic color system */
+  --brand-primary: #004aad;
+  --brand-primary-hover: #00347a;
+  --brand-primary-deep: #002454;
+  --brand-primary-soft: #e8f1ff;
+  --brand-turquoise: #007f86;
+
+  --surface-page: #f4f8ff;
+  --surface-card: #ffffff;
+  --status-success: #16803c;
+  --status-warning: #b45f06;
+  --status-danger: #b42318;
+
+  --bg-primary: var(--surface-page);
+  --bg-secondary: var(--surface-card);
+  --bg-dark: var(--brand-primary-deep);
+  --bg-dark-secondary: #07366f;
+
+  --primary: var(--brand-primary);
+  --primary-hover: var(--brand-primary-hover);
+  --primary-light: var(--brand-primary-soft);
+
+  --secondary: var(--brand-turquoise);
+  --secondary-hover: #00676d;
+  --secondary-light: #e6f5f6;
+
+  --success: var(--status-success);
+  --success-light: #edf8f0;
+  --danger: var(--status-danger);
+  --danger-light: #fff1f0;
+  --warning: var(--status-warning);
+  --warning-light: #fff7e8;
+
+  --text-primary: #172033;
+  --text-secondary: #667085;
   --text-light: #f8fafc;
-  
-  --border: #e2e8f0;
+
+  --border: #d7e0ec;
   
   /* Utilities */
   --radius-md: 0.5rem;
@@ -31,6 +46,7 @@
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
   --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
   --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --shadow-xl: 0 20px 45px -18px rgb(0 36 84 / 0.28);
   
   /* Animations */
   --transition-fast: 150ms ease;
@@ -52,7 +68,25 @@ body {
   line-height: 1.5;
 }
 
+:focus-visible {
+  outline: 3px solid rgb(0 74 173 / 0.32);
+  outline-offset: 3px;
+}
+
 /* Helpers */
+.comfy-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: var(--brand-primary-deep);
+  font-size: 1.7rem;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  line-height: 1;
+}
+
+.comfy-brand--inverse { color: white; }
+
 .container {
   width: 100%;
   max-width: 480px; /* Mobile App simulation width */
@@ -222,7 +256,7 @@ p {
 .login-role-card:hover p { color: white; }
 .login-role-card:hover .login-role-icon { background: rgb(255 255 255 / 0.2) !important; }
 .login-role-card--employee:hover { background: var(--primary); border-color: var(--primary); }
-.login-role-card--driver:hover { background: var(--secondary); border-color: var(--secondary); }
+.login-role-card--driver:hover { background: var(--brand-primary-deep); border-color: var(--brand-primary-deep); }
 .login-role-card--admin:hover { background: var(--bg-dark-secondary); border-color: var(--bg-dark-secondary); }
 
 .back-link {
@@ -276,7 +310,7 @@ p {
 .profile-detail-grid span, .success-note span { display: grid; }
 .profile-detail-grid small, .success-note small { color: var(--text-secondary); }
 .vehicle-photo { width: 100%; max-height: 220px; margin-top: 1rem; object-fit: cover; border-radius: var(--radius-md); }
-.success-note { display: flex; align-items: center; gap: 0.75rem; margin-top: 1rem; padding: 1rem; text-align: left; color: #166534; border: 1px solid #bbf7d0; border-radius: var(--radius-md); background: #f0fdf4; }
+.success-note { display: flex; align-items: center; gap: 0.75rem; margin-top: 1rem; padding: 1rem; text-align: left; color: var(--success); border: 1px solid #b9dfc4; border-radius: var(--radius-md); background: var(--success-light); }
 
 .compliance-card { display: flex; align-items: center; gap: 1rem; border-top: 6px solid; }
 .compliance-card h2, .compliance-card p { margin: 0.2rem 0 0; }
@@ -328,7 +362,7 @@ p {
 .employee-greeting { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
 .employee-greeting h1, .employee-greeting p { margin: 0.2rem 0 0; }
 .employee-greeting p { color: var(--text-secondary); }
-.wallet-pill { display: flex; align-items: center; gap: 0.55rem; padding: 0.65rem 0.8rem; color: white; border: 0; border-radius: var(--radius-md); background: linear-gradient(135deg, var(--primary), #1e3a8a); cursor: pointer; }
+.wallet-pill { display: flex; align-items: center; gap: 0.55rem; padding: 0.65rem 0.8rem; color: white; border: 0; border-radius: var(--radius-md); background: linear-gradient(135deg, var(--primary), var(--brand-primary-deep)); cursor: pointer; }
 .wallet-pill span, .notice-card span { display: grid; text-align: left; }
 .wallet-pill small { opacity: 0.8; }
 .notice-card { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 0.75rem; padding: 0.9rem; border: 1px solid; border-radius: var(--radius-md); }
@@ -336,15 +370,17 @@ p {
 .notice-card__actions { display: flex; flex-direction: column; align-items: flex-end; gap: 0.35rem; }
 .notice-card button { padding: 0; color: inherit; border: 0; background: transparent; font-weight: 700; cursor: pointer; }
 .notice-card__dismiss { font-weight: 600; opacity: 0.85; text-decoration: underline; }
-.notice-card--warning { color: #92400e; border-color: #fde68a; background: #fffbeb; }
-.notice-card--danger { color: #991b1b; border-color: #fecaca; background: #fef2f2; }
+.notice-card--warning { color: var(--warning); border-color: #f0d19a; background: var(--warning-light); }
+.notice-card--danger { color: var(--danger); border-color: #f4c7c3; background: var(--danger-light); }
 .journey-card { display: grid; gap: 1rem; }
 .journey-card > header { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; }
 .journey-card h2, .journey-card small { margin: 0; }
 .journey-card small { color: var(--text-secondary); }
 .status-badge { padding: 0.25rem 0.6rem; border-radius: 1rem; font-size: 0.75rem; font-weight: 800; white-space: nowrap; }
-.status-badge--success { color: #047857; background: #d1fae5; }
-.status-badge--warning { color: #92400e; background: #fef3c7; }
+.status-badge--success { color: var(--success); background: var(--success-light); }
+.status-badge--warning { color: var(--warning); background: var(--warning-light); }
+.status-badge--danger { color: var(--danger); background: var(--danger-light); }
+.status-badge--neutral { color: var(--text-secondary); background: var(--bg-secondary); }
 .journey-time { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; padding: 0.85rem; border-radius: var(--radius-md); background: var(--primary-light); }
 .journey-time span { display: grid; }
 .journey-time strong { font-size: 1.25rem; color: var(--primary); }

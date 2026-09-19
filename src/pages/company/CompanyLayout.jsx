@@ -7,6 +7,9 @@ import CompanyEmployees from './CompanyEmployees';
 import CompanyRoutes from './CompanyRoutes';
 import CompanyCredits from './CompanyCredits';
 import { useAuth } from '../../auth-context';
+import ComfyBrand from '../../components/ComfyBrand';
+import { adminCompany } from '../../data/adminDemo';
+import './admin.css';
 
 export default function CompanyLayout() {
   const navigate = useNavigate();
@@ -39,8 +42,9 @@ export default function CompanyLayout() {
         flexDirection: 'column'
       }}>
         <div style={{ padding: '2rem', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
-          <h2 style={{ margin: 0, color: 'white' }}>MoveCorp</h2>
+          <ComfyBrand inverse compact />
           <p style={{ margin: 0, opacity: 0.7, fontSize: '0.9rem' }}>Painel Corporativo</p>
+          <div className="admin-company-identity"><strong>{adminCompany.name}</strong><small>Plano {adminCompany.plan} · exemplo</small></div>
         </div>
 
         <nav className="company-navigation" style={{ flex: 1, padding: '1.5rem 1rem' }}>
@@ -52,6 +56,7 @@ export default function CompanyLayout() {
               <button
                 key={idx}
                 onClick={() => navigate(item.path)}
+                aria-current={finalActive ? 'page' : undefined}
                 style={{
                   width: '100%',
                   display: 'flex',

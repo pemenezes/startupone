@@ -1,86 +1,98 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Check, CheckCircle2, MapPin, Navigation, LocateFixed, Users, X } from 'lucide-react';
-import { advanceJourney, createDemoRoute, initialJourney, navigationUrl } from '../../lib/driverDemo';
-import { DriverBack } from './DriverUI';
+import { Check, CheckCircle2, MapPin, Navigation, LocateFixed, X } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { createDemoRoute, navigationUrl } from '../../lib/driverDemo';
+import { attendanceCounts, firstPendingStop, groupPassengersForStops } from '../../lib/driverAttendanceState';
+import { useDriver } from './driver-context';
+import { DriverBack, DriverEmpty, DriverError, DriverLoading } from './DriverUI';
 import { useDriverLocation } from './useDriverLocation';
+import AttendanceConfirmation from './AttendanceConfirmation';
 import DriverDemoMap from './DriverDemoMap';
 
-function AttendanceConfirmation({ pending, onClose, onConfirm }) {
-  const dialog = useRef(null);
-  const cancel = useRef(null);
-  useEffect(() => {
-    dialog.current.showModal();
-    cancel.current.focus();
-  }, []);
-  const boarding = pending.status === 'boarded';
-  return <dialog ref={dialog} className="driver-confirm-dialog" aria-labelledby="attendance-title" aria-describedby="attendance-description" onCancel={onClose}>
-    <span className={`driver-confirm-icon ${boarding ? '' : 'is-absence'}`}>{boarding ? <Users size={26} /> : <X size={26} />}</span>
-    <h2 id="attendance-title">{boarding ? 'Confirmar embarque?' : 'Confirmar ausência?'}</h2>
-    <p id="attendance-description">{boarding ? 'Confirmar que' : 'Confirmar a ausência de'} <strong>{pending.passenger}</strong>{boarding ? ' embarcou nesta parada?' : ' nesta parada?'}</p>
-    <div className="driver-confirm-actions">
-      <button ref={cancel} type="button" className="btn btn-outline" onClick={onClose}>Voltar</button>
-      <button type="button" className={`btn ${boarding ? 'btn-primary' : 'driver-btn-absence'}`} onClick={onConfirm}>{boarding ? 'Confirmar embarque' : 'Confirmar ausência'}</button>
-    </div>
-  </dialog>;
-}
-
 export default function MapNavigation() {
+  const {
+    journey: schedule, assignment, status, operation, operationState, operationAction,
+    attendance, attendanceAction, recordAttendance, finishJourney,
+  } = useDriver();
   const location = useDriverLocation();
   const [lockedOrigin, setLockedOrigin] = useState(null);
-  const origin = lockedOrigin || location.origin;
-  const stops = useMemo(() => createDemoRoute(origin), [origin]);
-  const [journey, setJourney] = useState(initialJourney);
+  const [arrivedStop, setArrivedStop] = useState(null);
   const [pending, setPending] = useState(null);
   const heading = useRef(null);
-  const activeStop = stops[journey.index];
-  const counts = Object.values(journey.attendance);
-  const boarded = counts.filter((status) => status === 'boarded').length;
-  const absent = counts.filter((status) => status === 'absent').length;
+  const origin = lockedOrigin || location.origin;
+  const passengerGroups = useMemo(() => groupPassengersForStops(attendance.data || [], 3), [attendance.data]);
+  const stops = useMemo(() => createDemoRoute(origin, passengerGroups), [origin, passengerGroups]);
+  const activeIndex = firstPendingStop(passengerGroups);
+  const activeStop = stops[activeIndex];
+  const arrived = arrivedStop === activeIndex;
+  const counts = attendanceCounts(attendance.data || []);
   const lockRoute = () => setLockedOrigin((current) => current || origin);
-  const arrive = () => {
+
+  useEffect(() => {
+    requestAnimationFrame(() => heading.current?.focus());
+  }, [activeIndex]);
+
+  const arrive = async () => {
     lockRoute();
-    setJourney((current) => advanceJourney(current, { type: 'arrive', stopId: activeStop.id }, stops));
+    if (activeStop.destination) {
+      await finishJourney();
+      return;
+    }
+    setArrivedStop(activeIndex);
   };
-  const confirmAttendance = () => {
-    const next = advanceJourney(journey, { type: 'attendance', ...pending }, stops);
-    setJourney(next);
-    setPending(null);
-    if (next.index !== journey.index) requestAnimationFrame(() => heading.current?.focus());
+
+  const confirmAttendance = async () => {
+    const updated = await recordAttendance(pending.passengerId, pending.status);
+    if (updated) setPending(null);
   };
+
+  const askAttendance = (passenger, passengerStatus) => setPending({
+    passengerId: passenger.passenger_id,
+    passengerName: passenger.passenger_name,
+    currentStatus: passenger.status,
+    status: passengerStatus,
+  });
+
+  if (schedule.loading) return <div className="driver-stack"><DriverBack /><DriverLoading>Carregando jornada...</DriverLoading></div>;
+  if (schedule.error) return <div className="driver-stack"><DriverBack /><DriverError error={schedule.error} onRetry={schedule.refresh} /></div>;
+  if (!assignment) return <div className="driver-stack"><DriverBack /><DriverEmpty title="Rota indisponível"><p>Não há uma rota atribuída para abrir no mapa.</p></DriverEmpty></div>;
+  if (operation.loading) return <div className="driver-stack"><DriverBack /><DriverLoading>Carregando execução da jornada...</DriverLoading></div>;
+  if (operation.error) return <div className="driver-stack"><DriverBack /><DriverError error={operation.error} onRetry={operation.refresh} /></div>;
+  if (operationState === 'planned') return <div className="driver-stack"><DriverBack /><DriverEmpty title="Jornada ainda não iniciada"><p>Inicie a jornada antes de acompanhar as paradas.</p><Link className="btn btn-primary" to="/driver">Ir para a jornada</Link></DriverEmpty></div>;
+  if (operationState === 'completed') return <div className="driver-stack"><DriverBack /><DriverEmpty title="Jornada concluída"><p>A operação de hoje já foi finalizada.</p></DriverEmpty></div>;
+  if (status !== 'scheduled' && operationState !== 'in_progress') return <div className="driver-stack"><DriverBack /><DriverEmpty title="Rota indisponível"><p>Não há uma operação prevista para abrir no mapa hoje.</p></DriverEmpty></div>;
+  if (operationState !== 'in_progress') return <div className="driver-stack"><DriverBack /><DriverEmpty title="Jornada indisponível"><p>Esta operação não pode ser acompanhada no mapa.</p></DriverEmpty></div>;
+  if (attendance.loading) return <div className="driver-stack"><DriverBack /><DriverLoading>Carregando embarques...</DriverLoading></div>;
+  if (attendance.error) return <div className="driver-stack"><DriverBack /><DriverError error={attendance.error} onRetry={attendance.refresh} /></div>;
 
   return <div className="page-transition driver-stack driver-map-page">
     <DriverBack />
-    <div className="driver-route-heading"><div><small>ACOMPANHAMENTO DA VIAGEM</small><h1>Sua rota</h1></div><span className="driver-badge">{journey.complete ? 'Concluída' : `Parada ${journey.index + 1} de ${stops.length}`}</span></div>
+    <div className="driver-route-heading"><div><small>ACOMPANHAMENTO DA VIAGEM</small><h1>Sua rota</h1></div><span className="driver-badge">Parada {activeIndex + 1} de {stops.length}</span></div>
     <section className="driver-map-panel" aria-label="Mapa interativo da rota">
-      <DriverDemoMap origin={origin} position={location.position} stops={stops} selected={activeStop.id} complete={journey.complete} />
+      <DriverDemoMap origin={origin} position={location.position} stops={stops} selected={activeStop.id} complete={false} />
       <div className="driver-location-bar">
         <div role="status"><LocateFixed size={17} aria-hidden="true" /><span>{location.status === 'ready' ? `GPS ativo · precisão de ${Math.round(location.accuracy)} m` : location.status === 'requesting' ? 'Buscando localização…' : location.status === 'error' ? location.message : 'Localização desativada'}</span></div>
         {location.status !== 'ready' && <button type="button" className="driver-gps-button" onClick={location.start} disabled={location.status === 'requesting'}>{location.status === 'error' ? 'Tentar novamente' : 'Ativar GPS'}</button>}
       </div>
     </section>
 
-    <div className="driver-trip-progress" aria-label={`${journey.complete ? stops.length : journey.index} de ${stops.length} paradas concluídas`}>
-      {stops.map((stop, index) => <span key={stop.id} className={journey.complete || index < journey.index ? 'is-done' : index === journey.index ? 'is-current' : ''} />)}
+    <div className="driver-trip-progress" aria-label={`${activeIndex} de ${stops.length} paradas concluídas`}>
+      {stops.map((stop, index) => <span key={stop.id} className={index < activeIndex ? 'is-done' : index === activeIndex ? 'is-current' : ''} />)}
     </div>
 
-    {journey.complete ? <section className="card driver-stack driver-complete" aria-label="Viagem concluída">
-      <CheckCircle2 size={40} aria-hidden="true" /><h2 ref={heading} tabIndex={-1}>Você chegou ao destino</h2><p>Todas as paradas foram concluídas.</p>
-      <div className="driver-trip-totals"><span><strong>{boarded}</strong> embarcados</span><span><strong>{absent}</strong> ausentes</span></div>
-      <DriverBack>Voltar à jornada</DriverBack>
-    </section> : <section className="card driver-stack driver-current-stop" aria-label="Parada atual">
-      <div className="driver-stop-title"><span className="driver-stop-number">{activeStop.id}</span><div><small>{activeStop.destination ? 'DESTINO FINAL' : journey.arrived ? 'EMBARQUE LIBERADO' : 'PRÓXIMA PARADA'}</small><h2 ref={heading} tabIndex={-1}>{activeStop.name}</h2></div>{journey.arrived && <CheckCircle2 size={22} aria-label="Chegada confirmada" />}</div>
-      <p>{activeStop.destination ? 'Confirme a chegada para concluir a viagem.' : `${activeStop.passengers.length} passageiros · ${activeStop.passengers.join(', ')}`}</p>
+    <section className="card driver-stack driver-current-stop" aria-label="Parada atual">
+      <div className="driver-stop-title"><span className="driver-stop-number">{activeStop.id}</span><div><small>{activeStop.destination ? 'DESTINO FINAL' : arrived ? 'EMBARQUE LIBERADO' : 'PRÓXIMA PARADA'}</small><h2 ref={heading} tabIndex={-1}>{activeStop.name}</h2></div>{arrived && <CheckCircle2 size={22} aria-label="Chegada confirmada" />}</div>
+      <p>{activeStop.destination ? 'Todos os passageiros foram atendidos. Confirme a chegada para concluir a jornada.' : `${activeStop.passengers.length} passageiro(s) nesta parada`}</p>
       <a className="btn btn-outline driver-navigate" href={navigationUrl(activeStop.position)} target="_blank" rel="noopener noreferrer" onClick={lockRoute}><Navigation size={18} aria-hidden="true" />Navegar até o local</a>
-      {!journey.arrived ? <button type="button" className="btn btn-primary" onClick={arrive}><MapPin size={18} aria-hidden="true" />Confirmar chegada</button> : <ul className="driver-boarding-list">
-        {activeStop.passengers.map((passenger) => {
-          const status = journey.attendance[`${activeStop.id}:${passenger}`];
-          return <li key={passenger}><div className="driver-passenger-name"><span className="driver-passenger-avatar">{passenger[0]}</span><strong>{passenger}</strong>{status && <span className={`driver-attendance-status ${status === 'absent' ? 'is-absence' : ''}`}>{status === 'boarded' ? 'Embarcado' : 'Ausente'}</span>}</div>
-            {!status && <div className="driver-boarding-actions"><button type="button" className="btn btn-primary" aria-label={`Confirmar embarque de ${passenger}`} onClick={() => setPending({ stopId: activeStop.id, passenger, status: 'boarded' })}><Check size={18} aria-hidden="true" />Embarcou</button><button type="button" className="btn btn-outline" aria-label={`Registrar ausência de ${passenger}`} onClick={() => setPending({ stopId: activeStop.id, passenger, status: 'absent' })}><X size={18} aria-hidden="true" />Ausente</button></div>}
-          </li>;
-        })}
+      {!arrived ? <button type="button" className="btn btn-primary" onClick={arrive} disabled={operationAction.loading}><MapPin size={18} aria-hidden="true" />{activeStop.destination && operationAction.loading ? 'Finalizando...' : 'Confirmar chegada'}</button> : <ul className="driver-boarding-list">
+        {activeStop.passengers.map((passenger) => <li key={passenger.passenger_id}>
+          <div className="driver-passenger-name"><span className="driver-passenger-avatar">{passenger.passenger_name.slice(0, 2).toUpperCase()}</span><strong>{passenger.passenger_name}</strong>{passenger.status !== 'expected' && <span className={`driver-attendance-status ${passenger.status === 'absent' ? 'is-absence' : ''}`}>{passenger.status === 'boarded' ? 'Embarcado' : 'Ausente'}</span>}</div>
+          {passenger.status === 'expected' ? <div className="driver-boarding-actions"><button type="button" className="btn btn-primary" onClick={() => askAttendance(passenger, 'boarded')}><Check size={18} aria-hidden="true" />Embarcou</button><button type="button" className="btn btn-outline" onClick={() => askAttendance(passenger, 'absent')}><X size={18} aria-hidden="true" />Ausente</button></div> : <button type="button" className="btn btn-outline driver-correction-button" onClick={() => askAttendance(passenger, passenger.status === 'boarded' ? 'absent' : 'boarded')}>Corrigir para {passenger.status === 'boarded' ? 'ausente' : 'embarcado'}</button>}
+        </li>)}
       </ul>}
-    </section>}
-    {!journey.complete && <div className="driver-trip-totals" aria-live="polite"><span><strong>{boarded}</strong> embarcados</span><span><strong>{absent}</strong> ausentes</span></div>}
-    {pending && <AttendanceConfirmation pending={pending} onClose={() => setPending(null)} onConfirm={confirmAttendance} />}
+    </section>
+    {(operationAction.error || attendanceAction.error) && <DriverError error={operationAction.error || attendanceAction.error} />}
+    <div className="driver-trip-totals" aria-live="polite"><span><strong>{counts.expected}</strong> aguardando</span><span><strong>{counts.boarded}</strong> embarcados</span><span><strong>{counts.absent}</strong> ausentes</span></div>
+    {pending && <AttendanceConfirmation pending={pending} loading={attendanceAction.loading} onClose={() => setPending(null)} onConfirm={confirmAttendance} />}
   </div>;
 }

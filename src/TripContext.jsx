@@ -6,19 +6,26 @@ import {
   fetchTodayRides,
   upsertSubscription,
 } from './lib/subscriptions';
+import { fetchEmployeeJourneyStatuses } from './lib/driverAttendance';
+import { todayISO } from './lib/schedule';
 
 const TripContext = createContext(null);
 
 export function TripProvider({ children }) {
   const { profile, role } = useAuth();
+  const profileId = profile?.id;
   const [subscriptions, setSubscriptions] = useState([]);
   const [todayRides, setTodayRides] = useState([]);
+  const [journeyStatuses, setJourneyStatuses] = useState([]);
+  const [journeyStatusError, setJourneyStatusError] = useState(null);
   const [loading, setLoading] = useState(true);
 
   const refreshTrip = useCallback(async () => {
-    if (!profile?.id || role !== 'employee') {
+    if (!profileId || role !== 'employee') {
       setSubscriptions([]);
       setTodayRides([]);
+      setJourneyStatuses([]);
+      setJourneyStatusError(null);
       setLoading(false);
       return null;
     }
@@ -26,25 +33,47 @@ export function TripProvider({ children }) {
     setLoading(true);
     try {
       const [subs, rides] = await Promise.all([
-        fetchEmployeeSubscriptions(profile.id),
-        fetchTodayRides(profile.id),
+        fetchEmployeeSubscriptions(profileId),
+        fetchTodayRides(profileId),
       ]);
       setSubscriptions(subs);
       setTodayRides(rides);
-      return { subscriptions: subs, todayRides: rides };
+      try {
+        const statuses = await fetchEmployeeJourneyStatuses(profileId, todayISO());
+        setJourneyStatuses(statuses);
+        setJourneyStatusError(null);
+        return { subscriptions: subs, todayRides: rides, journeyStatuses: statuses };
+      } catch (statusError) {
+        console.error('Failed to load journey status', statusError);
+        setJourneyStatuses([]);
+        setJourneyStatusError(statusError);
+        return { subscriptions: subs, todayRides: rides, journeyStatuses: [] };
+      }
     } catch (err) {
       console.error('Failed to load subscriptions', err);
       setSubscriptions([]);
       setTodayRides([]);
+      setJourneyStatuses([]);
+      setJourneyStatusError(null);
       return null;
     } finally {
       setLoading(false);
     }
-  }, [profile?.id, role]);
+  }, [profileId, role]);
 
   useEffect(() => {
     refreshTrip();
   }, [refreshTrip]);
+
+  useEffect(() => {
+    if (role !== 'employee') return undefined;
+    const timer = window.setInterval(refreshTrip, 30000);
+    window.addEventListener('focus', refreshTrip);
+    return () => {
+      window.clearInterval(timer);
+      window.removeEventListener('focus', refreshTrip);
+    };
+  }, [refreshTrip, role]);
 
   const selectRoute = async (routeId, weekdays) => {
     if (!profile?.id) throw new Error('Usuário não autenticado');
@@ -73,6 +102,8 @@ export function TripProvider({ children }) {
     subscriptions,
     todayRides,
     expectedToday,
+    journeyStatuses,
+    journeyStatusError,
     /** @deprecated use primaryToday / expectedToday — kept for older screens */
     activeTrip: primaryToday
       ? {

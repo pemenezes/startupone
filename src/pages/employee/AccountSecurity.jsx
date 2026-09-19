@@ -25,8 +25,8 @@ function Message({ tone, children }) {
   if (!children) return null;
   const styles =
     tone === 'error'
-      ? { background: '#fef2f2', color: '#b91c1c', border: '1px solid #fecaca' }
-      : { background: '#f0fdf4', color: '#166534', border: '1px solid #bbf7d0' };
+      ? { background: 'var(--danger-light)', color: 'var(--danger)', border: '1px solid #f4c7c3' }
+      : { background: 'var(--success-light)', color: 'var(--success)', border: '1px solid #b9dfc4' };
   return (
     <div
       style={{
