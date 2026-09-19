@@ -35,7 +35,7 @@ export default function DriverDemoMap({ origin, position, stops, selected, compl
     </div>}
     <MapContainer center={origin} zoom={14} className="driver-interactive-map" scrollWheelZoom={false}>
       <TileLayer key={tileVersion} url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' eventHandlers={{ tileerror: () => setTileError(true) }} />
-      <Polyline positions={[origin, ...stops.map((stop) => stop.position)]} pathOptions={{ color: '#047857', weight: 5, dashArray: '9 8', opacity: 0.8 }} />
+      <Polyline positions={[origin, ...stops.map((stop) => stop.position)]} pathOptions={{ color: '#004aad', weight: 5, dashArray: '9 8', opacity: 0.85 }} />
       <Marker position={position || origin} icon={originIcon} title={position ? 'Última posição do motorista' : 'Ponto de partida'}>
         <Popup>{position ? 'Última posição obtida pelo GPS' : 'Ponto de partida'}</Popup>
       </Marker>

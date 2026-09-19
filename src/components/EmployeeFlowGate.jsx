@@ -13,6 +13,7 @@ export default function EmployeeFlowGate({ children }) {
 
   const path = location.pathname;
   const isOnboarding = path.startsWith('/employee/onboarding');
+  if (path === '/employee/example') return children;
 
   if (loading && !isOnboarding) {
     return (

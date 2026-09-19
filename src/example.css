@@ -1,0 +1,43 @@
+.example-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: .8rem; }
+.example-home-card { border-top: 4px solid var(--primary); }
+.example-home-card .example-section-heading svg { color: var(--primary); }
+.example-employee-home-card { display: grid; gap: .75rem; margin: .85rem 0; border-top: 4px solid var(--primary); }
+.example-employee-home-card p { margin: .3rem 0 0; color: var(--text-secondary); font-size: .88rem; }
+.example-employee-home-card .btn { width: fit-content; }
+.example-heading h1 { margin: .2rem 0; }
+.example-heading .driver-badge { flex-shrink: 0; }
+.example-heading p { font-size: .9rem; }
+.example-intro { border-top: 5px solid var(--primary); }
+.example-meta, .example-counts { display: grid; grid-template-columns: repeat(3, 1fr); gap: .55rem; }
+.example-meta span, .example-counts span { display: grid; gap: .2rem; padding: .75rem .3rem; text-align: center; border-radius: .65rem; background: var(--primary-light); color: var(--text-secondary); font-size: .72rem; }
+.example-meta strong, .example-counts strong { color: var(--brand-primary-deep); font-size: 1.1rem; }
+.example-map-caption { display: flex; align-items: center; gap: .4rem; padding: .7rem .8rem; font-size: .78rem; color: var(--text-secondary); }
+.example-map-caption svg { flex-shrink: 0; color: var(--primary); }
+.example-section-heading { display: flex; justify-content: space-between; align-items: center; }
+.example-section-heading svg { color: var(--primary); }
+.example-passenger-list, .example-history { list-style: none; margin: 0; padding: 0; display: grid; gap: .55rem; }
+.example-passenger-list li { display: flex; align-items: center; gap: .55rem; padding: .6rem 0; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+.example-passenger-list li > span:first-child { display: grid; gap: .1rem; flex: 1; min-width: 120px; }
+.example-passenger-list small, .example-history span { color: var(--text-secondary); font-size: .78rem; }
+.example-passenger-list .driver-badge { white-space: nowrap; }
+.example-link-button { border: 0; background: none; color: var(--primary); text-decoration: underline; cursor: pointer; font: inherit; font-size: .78rem; }
+.example-history li { display: grid; gap: .15rem; padding: .45rem 0; border-bottom: 1px solid var(--border); }
+.example-reset { color: var(--text-secondary); justify-self: start; }
+.example-passenger-page { display: grid; gap: .9rem; }
+.example-back { display: inline-flex; align-items: center; gap: .35rem; color: var(--text-primary); text-decoration: none; width: fit-content; min-height: 44px; }
+.example-passenger-card { display: grid; gap: .9rem; }
+.example-passenger-card header { display: flex; justify-content: space-between; align-items: center; gap: .8rem; }
+.example-passenger-card header svg { color: var(--primary); }
+.example-passenger-card h2 { margin: .2rem 0 0; }
+.example-passenger-status { display: flex; align-items: center; gap: .7rem; padding: .85rem; border-radius: .7rem; background: var(--primary-light); color: var(--primary); }
+.example-passenger-status.is-boarded { background: var(--success-light); color: var(--success); }
+.example-passenger-status.is-absent { background: var(--danger-light); color: var(--danger); }
+.example-passenger-status span { display: grid; gap: .12rem; }
+.example-passenger-status small { color: var(--text-secondary); }
+.example-passenger-details { display: grid; grid-template-columns: repeat(2, 1fr); gap: .75rem; }
+.example-passenger-details div { display: grid; gap: .15rem; }
+.example-passenger-details dt { color: var(--text-secondary); font-size: .75rem; }
+.example-passenger-details dd { margin: 0; font-weight: 650; font-size: .88rem; }
+.example-passenger-map .driver-interactive-map { height: clamp(260px, 40svh, 420px); }
+.example-footnote { font-size: .75rem; color: var(--text-secondary); }
+@media (max-width: 390px) { .example-heading { display: grid; } .example-passenger-details { grid-template-columns: 1fr; } }

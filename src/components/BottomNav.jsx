@@ -60,7 +60,7 @@ export default function BottomNav({ role, onTrackNavigate, hasActiveTrip }) {
               cursor: 'pointer',
               padding: '0.25rem',
               gap: '0.25rem',
-              color: finalActive ? '#111111' : '#4b5563',
+              color: finalActive ? 'var(--primary)' : 'var(--text-secondary)',
               fontWeight: finalActive ? 600 : 400,
               display: 'flex',
               flexDirection: 'column',

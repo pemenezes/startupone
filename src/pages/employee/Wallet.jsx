@@ -75,7 +75,7 @@ export default function WalletPage() {
         ].map((tx, i) => (
           <div key={i} className="card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-              <div style={{ backgroundColor: tx.amount > 0 ? '#f0fdf4' : '#fef2f2', padding: '0.5rem', borderRadius: '50%', color: tx.amount > 0 ? 'var(--secondary)' : 'var(--danger)' }}>
+              <div style={{ backgroundColor: tx.amount > 0 ? 'var(--success-light)' : 'var(--danger-light)', padding: '0.5rem', borderRadius: '50%', color: tx.amount > 0 ? 'var(--success)' : 'var(--danger)' }}>
                 <CreditCard size={18} />
               </div>
               <div>

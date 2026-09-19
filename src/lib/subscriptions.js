@@ -122,8 +122,8 @@ export async function fetchTodayRides(employeeId, date = new Date()) {
   const rides = [];
 
   for (const sub of subs) {
-    if (!isWeekdayScheduled(sub.weekdays, date)) continue;
     const ex = await fetchException(employeeId, sub.route_id, dateStr);
+    if (!isWeekdayScheduled(sub.weekdays, date) && ex?.type !== 'added_extra') continue;
     if (ex?.type === 'cancelled') {
       rides.push({ ...sub, expectedToday: false, cancelledToday: true });
     } else {

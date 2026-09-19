@@ -1,4 +1,4 @@
--- MoveCorp: auto-create a `profiles` row whenever a new auth user signs up.
+-- Comfy: auto-create a `profiles` row whenever a new auth user signs up.
 --
 -- Run this ONCE in Supabase -> SQL Editor -> New query -> Run.
 -- After this is installed, self-registration (supabase.auth.signUp from the app)

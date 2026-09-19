@@ -3,11 +3,23 @@ import { useAuth } from '../../auth-context';
 import { fetchDriverAssignments, fetchPassengersForRouteToday } from '../../lib/assignments';
 import { todayISO } from '../../lib/schedule';
 import { driverDayStatus } from '../../lib/driverSchedule';
+import {
+  completeDriverJourney,
+  fetchDriverJourney,
+  journeyDisplayState,
+  startDriverJourney,
+} from '../../lib/driverJourneys';
+import {
+  fetchJourneyPassengers,
+  recordJourneyPassengerStatus,
+} from '../../lib/driverAttendance';
 import { DriverContext } from './driver-context';
 import { useDriverResource } from './useDriverResource';
 
 export default function DriverProvider({ children }) {
   const { profile } = useAuth();
+  const [operationAction, setOperationAction] = useState({ loading: false, error: null });
+  const [attendanceAction, setAttendanceAction] = useState({ loading: false, error: null });
   const [day, setDay] = useState(() => todayISO());
   useEffect(() => {
     const updateDay = () => setDay(todayISO());
@@ -39,8 +51,64 @@ export default function DriverProvider({ children }) {
     return fetchPassengersForRouteToday(assignment.route_id, new Date(`${day}T12:00:00-03:00`));
   }, [assignment, status, day]);
   const passengers = useDriverResource(loadPassengers);
+  const loadOperation = useCallback(async () => {
+    if (!assignment) return null;
+    return fetchDriverJourney(profile.id, assignment.route_id, day);
+  }, [profile.id, assignment, day]);
+  const operation = useDriverResource(loadOperation);
+  const operationState = journeyDisplayState(operation.data, status);
+  const loadAttendance = useCallback(
+    () => fetchJourneyPassengers(operation.data?.id),
+    [operation.data?.id],
+  );
+  const attendance = useDriverResource(loadAttendance);
+
+  const runOperation = async (action) => {
+    if (operationAction.loading) return null;
+    setOperationAction({ loading: true, error: null });
+    try {
+      const data = await action();
+      setOperationAction({ loading: false, error: null });
+      operation.refresh();
+      return data;
+    } catch (error) {
+      setOperationAction({ loading: false, error });
+      return null;
+    }
+  };
+
+  const startJourney = () => runOperation(() => startDriverJourney(assignment?.route_id, day));
+  const finishJourney = () => runOperation(() => completeDriverJourney(operation.data?.id));
+  const recordAttendance = async (passengerId, passengerStatus) => {
+    if (attendanceAction.loading) return null;
+    setAttendanceAction({ loading: true, error: null });
+    try {
+      const data = await recordJourneyPassengerStatus(operation.data?.id, passengerId, passengerStatus);
+      setAttendanceAction({ loading: false, error: null });
+      attendance.refresh();
+      return data;
+    } catch (error) {
+      setAttendanceAction({ loading: false, error });
+      return null;
+    }
+  };
+
   return (
-    <DriverContext.Provider value={{ journey, passengers, assignment, status, day }}>
+    <DriverContext.Provider value={{
+      journey,
+      passengers,
+      assignment,
+      status,
+      day,
+      operation,
+      operationState,
+      operationAction,
+      attendance,
+      attendanceAction,
+      startJourney,
+      finishJourney,
+      recordAttendance,
+    }}>
       {children}
     </DriverContext.Provider>
   );

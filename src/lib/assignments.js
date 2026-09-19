@@ -37,10 +37,8 @@ export async function fetchPassengersForRouteToday(routeId, date = new Date()) {
 
   if (error) throw error;
 
-  const scheduled = (subs || []).filter((s) => isWeekdayScheduled(s.weekdays, date));
-  if (!scheduled.length) return [];
-
-  const employeeIds = scheduled.map((s) => s.employee_id);
+  if (!subs?.length) return [];
+  const employeeIds = subs.map((s) => s.employee_id);
 
   const { data: exceptions, error: exError } = await supabase
     .from('attendance_exceptions')
@@ -51,11 +49,11 @@ export async function fetchPassengersForRouteToday(routeId, date = new Date()) {
 
   if (exError) throw exError;
 
-  const cancelled = new Set(
-    (exceptions || []).filter((e) => e.type === 'cancelled').map((e) => e.employee_id)
-  );
-
-  const presentIds = employeeIds.filter((id) => !cancelled.has(id));
+  const exceptionByEmployee = new Map((exceptions || []).map((exception) => [exception.employee_id, exception.type]));
+  const presentIds = subs
+    .filter((sub) => (isWeekdayScheduled(sub.weekdays, date) || exceptionByEmployee.get(sub.employee_id) === 'added_extra')
+      && exceptionByEmployee.get(sub.employee_id) !== 'cancelled')
+    .map((sub) => sub.employee_id);
   if (!presentIds.length) return [];
 
   const { data: profiles, error: pError } = await supabase

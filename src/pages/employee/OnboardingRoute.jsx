@@ -134,8 +134,8 @@ export default function OnboardingRoute() {
       {error && (
         <div
           style={{
-            background: '#fef2f2',
-            color: '#b91c1c',
+            background: 'var(--danger-light)',
+            color: 'var(--danger)',
             padding: '0.75rem',
             borderRadius: 'var(--radius-md)',
             fontSize: '0.85rem',
@@ -148,8 +148,8 @@ export default function OnboardingRoute() {
       {info && (
         <div
           style={{
-            background: '#f0fdf4',
-            color: '#166534',
+            background: 'var(--success-light)',
+            color: 'var(--success)',
             padding: '0.75rem',
             borderRadius: 'var(--radius-md)',
             fontSize: '0.85rem',

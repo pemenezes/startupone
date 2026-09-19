@@ -66,7 +66,7 @@ export default function DriverProfile() {
           <ShieldCheck size={20} />
           <span>
             <strong>Perfil verificado</strong>
-            <small>Documentação e antecedentes validados pela MoveCorp.</small>
+            <small>Documentação e antecedentes validados pela Comfy.</small>
           </span>
         </div>
       </article>

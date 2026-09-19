@@ -75,7 +75,7 @@ export default function OnboardingAddresses() {
         </label>
 
         {error && (
-          <div style={{ background: '#fef2f2', color: '#b91c1c', padding: '0.75rem', borderRadius: 'var(--radius-md)', fontSize: '0.85rem' }}>
+          <div style={{ background: 'var(--danger-light)', color: 'var(--danger)', padding: '0.75rem', borderRadius: 'var(--radius-md)', fontSize: '0.85rem' }}>
             {error}
           </div>
         )}

@@ -39,7 +39,7 @@ export default function TrackVan() {
       <div
         style={{
           flex: 1,
-          backgroundColor: '#e2e8f0',
+          backgroundColor: 'var(--border)',
           borderRadius: 'var(--radius-lg)',
           position: 'relative',
           overflow: 'hidden',
@@ -91,8 +91,8 @@ export default function TrackVan() {
           marginTop: '0.75rem',
           padding: '0.65rem 0.85rem',
           borderRadius: 'var(--radius-md)',
-          background: '#eff6ff',
-          color: '#1e40af',
+          background: 'var(--primary-light)',
+          color: 'var(--primary-hover)',
           display: 'flex',
           gap: '0.5rem',
           alignItems: 'flex-start',

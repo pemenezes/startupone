@@ -1,4 +1,4 @@
--- MoveCorp: persistent employee credits (run in Supabase SQL Editor)
+-- Comfy: persistent employee credits (run in Supabase SQL Editor)
 -- Saldo por funcionário + histórico de movimentações.
 
 alter table public.profiles

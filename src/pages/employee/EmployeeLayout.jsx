@@ -12,6 +12,7 @@ import {
   filterNotificationsByPrefs,
 } from '../../lib/notificationPrefs';
 import HomeEmployee from './HomeEmployee';
+import ExamplePassengerView from './ExamplePassengerView';
 import TrackVan from './TrackVan';
 import Credits from './Credits';
 import CreditHistory from './CreditHistory';
@@ -127,9 +128,12 @@ function EmployeeShell() {
           position: 'relative',
         }}
       >
-        <h2 style={{ margin: 0, fontSize: '1.2rem', color: 'white' }}>
-          {firstName ? `Olá, ${firstName}` : 'MoveCorp'}
-        </h2>
+        <div>
+          <small style={{ display: 'block', opacity: 0.82, fontWeight: 700 }}>Comfy</small>
+          <h2 style={{ margin: 0, fontSize: '1.2rem', color: 'white' }}>
+            {firstName ? `Olá, ${firstName}` : 'Olá'}
+          </h2>
+        </div>
         <div className="header-actions">
           <button
             onClick={() => setIsOpen(!isOpen)}
@@ -202,6 +206,7 @@ function EmployeeShell() {
           <Routes>
             <Route path="/" element={<HomeEmployee />} />
             <Route path="/track" element={<TrackVan />} />
+            <Route path="/example" element={<ExamplePassengerView />} />
             <Route path="/credits" element={<Credits />} />
             <Route path="/credits/history" element={<CreditHistory />} />
             <Route path="/profile" element={<Profile />} />

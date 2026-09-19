@@ -1,10 +1,12 @@
 export const DEMO_ORIGIN = [-23.55052, -46.633308];
 
 // Illustrative points only; these offsets are not a road-routing engine.
-export function createDemoRoute(origin = DEMO_ORIGIN) {
+export function createDemoRoute(origin = DEMO_ORIGIN, passengerGroups) {
   const offsets = [[0.003, 0.002], [0.006, -0.001], [0.008, 0.004], [0.011, 0.007]];
   const names = ['Praça de encontro', 'Ponto do bairro', 'Terminal de conexão', 'Sede da empresa'];
-  const passengers = [['Ana', 'Bruno'], ['Carla'], ['Diego', 'Elisa'], []];
+  const passengers = passengerGroups
+    ? [...passengerGroups.slice(0, 3), []]
+    : [['Ana', 'Bruno'], ['Carla'], ['Diego', 'Elisa'], []];
   return offsets.map(([lat, lng], index) => ({
     id: index + 1,
     name: names[index],
