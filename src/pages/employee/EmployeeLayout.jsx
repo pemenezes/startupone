@@ -75,7 +75,7 @@ function EmployeeShell() {
       <header
         style={{
           padding: '1rem',
-          backgroundColor: 'var(--primary)',
+          background: 'var(--brand-gradient)',
           color: 'white',
           display: mapScreen ? 'none' : 'flex',
           justifyContent: 'space-between',

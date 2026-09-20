@@ -20,6 +20,7 @@ test('operation metrics derive from route and passenger state', () => {
     occurrences: 1,
   });
   assert.deepEqual(criticalRoutes(routes).map((route) => route.id), ['a', 'c']);
+  assert.deepEqual(criticalRoutes([...routes, { id: 'cancelled', status: 'cancelled', capacity: 5, passengers: [] }]).map((route) => route.id), ['a', 'c']);
   assert.deepEqual(routeHistory(routes[0]), []);
 });
 

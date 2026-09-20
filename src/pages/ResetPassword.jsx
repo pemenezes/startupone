@@ -207,7 +207,7 @@ export default function ResetPassword() {
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'center',
-        backgroundColor: 'var(--primary-light)',
+        background: 'linear-gradient(180deg, var(--brand-primary-soft), var(--surface-page))',
       }}
     >
       <div style={{ width: '100%', maxWidth: '380px', margin: '0 auto' }}>

@@ -19,12 +19,12 @@ export default function Splash() {
       flexDirection: 'column', 
       alignItems: 'center', 
       justifyContent: 'center',
-      backgroundColor: 'var(--primary)',
+      background: 'var(--brand-gradient)',
       color: 'white'
     }}>
       <div className="page-transition" style={{ textAlign: 'center' }}>
         <ComfyBrand inverse />
-        <p style={{ marginTop: '1rem', fontSize: '1.1rem', color: 'var(--primary-light)', fontWeight: 500 }}>
+        <p style={{ marginTop: '1rem', fontSize: '1.1rem', color: 'var(--brand-highlight)', fontWeight: 500 }}>
           Mobilidade inteligente
         </p>
       </div>

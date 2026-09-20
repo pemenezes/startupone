@@ -115,7 +115,7 @@ export default function Profile() {
         <p>Configurações e informações do colaborador.</p>
       </div>
 
-      <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+      <div className="card employee-profile-hero" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
           <div
             style={{
@@ -136,8 +136,8 @@ export default function Profile() {
               <h2 style={{ margin: 0, fontSize: '1.25rem' }}>{displayName}</h2>
               <span
                 style={{
-                  backgroundColor: '#dcfce3',
-                  color: 'var(--secondary)',
+                  backgroundColor: 'var(--success-light)',
+                  color: 'var(--success)',
                   fontSize: '0.75rem',
                   padding: '0.2rem 0.5rem',
                   borderRadius: '1rem',
@@ -248,7 +248,7 @@ export default function Profile() {
           marginTop: '1rem',
           backgroundColor: 'var(--danger-light)',
           color: 'var(--danger)',
-          border: '1px solid #fecaca',
+          border: '1px solid var(--status-danger-border)',
         }}
       >
         <LogOut size={18} /> Sair da conta

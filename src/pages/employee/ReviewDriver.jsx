@@ -93,7 +93,7 @@ export default function ReviewDriver() {
   if (submitted) {
     return (
       <div className="page-transition" style={{ textAlign: 'center', marginTop: '5rem' }}>
-        <h2 style={{ color: 'var(--secondary)' }}>Obrigado!</h2>
+        <h2 style={{ color: 'var(--success)' }}>Obrigado!</h2>
         <p>Sua avaliação de {selectedDriver?.name || 'motorista'} foi registrada na plataforma.</p>
       </div>
     );

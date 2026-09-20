@@ -1,14 +1,14 @@
 export const adminCompany = Object.freeze({
   name: 'TechCorp S.A.',
   plan: 'Business',
-  monthlyContract: 48000,
+  monthlyContract: 4800,
 });
 
 export const adminEmployees = Object.freeze([
-  { id: 'E101', name: 'Ana Silva', department: 'Tecnologia', routeId: 'RT-14', balance: 335, penalties: 0 },
-  { id: 'E102', name: 'Bruno Costa', department: 'Tecnologia', routeId: 'RT-14', balance: 350, penalties: 0 },
-  { id: 'E103', name: 'Carla Mendes', department: 'Financeiro', routeId: 'RT-14', balance: 310, penalties: 1 },
-  { id: 'E104', name: 'Diego Oliveira', department: 'Operações', routeId: 'RT-14', balance: 350, penalties: 0 },
+  { id: 'E101', name: 'Ana Silva', department: 'Tecnologia', routeId: 'CF-01', balance: 335, penalties: 0 },
+  { id: 'E102', name: 'Bruno Costa', department: 'Tecnologia', routeId: 'CF-01', balance: 350, penalties: 0 },
+  { id: 'E103', name: 'Carla Mendes', department: 'Financeiro', routeId: 'CF-01', balance: 310, penalties: 1 },
+  { id: 'E104', name: 'Diego Oliveira', department: 'Operações', routeId: 'CF-01', balance: 350, penalties: 0 },
   { id: 'E105', name: 'Elisa Santos', department: 'Vendas', routeId: 'RT-42', balance: 260, penalties: 0 },
   { id: 'E106', name: 'Felipe Lima', department: 'Vendas', routeId: 'RT-42', balance: 280, penalties: 0 },
   { id: 'E107', name: 'Gabriela Rocha', department: 'Financeiro', routeId: 'RT-42', balance: 350, penalties: 1 },
@@ -21,13 +21,13 @@ export const adminEmployees = Object.freeze([
 
 export const adminRoutes = Object.freeze([
   {
-    id: 'RT-14', name: 'Centro → Zona Sul', region: 'Centro', status: 'in_progress',
-    driver: 'Carlos Roberto', vehicle: 'Van ABC-1234', plate: 'ABC-1234',
-    capacity: 5, departure: '07:30', arrival: '08:20', etaMinutes: 12,
-    progress: 65, nextStop: 'Avenida Paulista, 1200',
-    path: [[-23.5431, -46.6427], [-23.5558, -46.6515], [-23.5649, -46.6544], [-23.5757, -46.6405]],
-    position: [-23.5649, -46.6544],
-    passengers: [{ id: 'E101', status: 'boarded' }, { id: 'E102', status: 'boarded' }, { id: 'E103', status: 'boarded' }, { id: 'E104', status: 'boarded' }],
+    id: 'CF-01', name: 'Centro → Campus Comfy', region: 'Centro', status: 'planned',
+    driver: 'Carlos Roberto', vehicle: 'Van Sprinter · ABC-1D23', plate: 'ABC-1D23',
+    capacity: 15, departure: '07:30', arrival: '08:20', etaMinutes: 18,
+    progress: 0, nextStop: 'Praça da República',
+    path: [[-23.5431, -46.6427], [-23.5482, -46.6478], [-23.5613, -46.6552], [-23.5695, -46.6601]],
+    position: [-23.5431, -46.6427],
+    passengers: [{ id: 'E101', status: 'expected' }, { id: 'E102', status: 'expected' }, { id: 'E103', status: 'expected' }, { id: 'E104', status: 'expected' }],
     noShows30Days: 2, historyBase: 76,
   },
   {

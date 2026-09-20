@@ -3,7 +3,7 @@ import React from 'react';
 export function ComfyMark({ size = 56, inverse = false, className = '' }) {
   const background = inverse ? '#ffffff' : 'var(--brand-primary)';
   const route = inverse ? 'var(--brand-primary)' : '#ffffff';
-  const accent = inverse ? 'var(--brand-turquoise)' : '#7de3e7';
+  const accent = 'var(--brand-highlight)';
 
   return (
     <svg

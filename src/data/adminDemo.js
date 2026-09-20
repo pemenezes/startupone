@@ -16,7 +16,7 @@ export function routeOccupancy(route) {
 }
 
 export function adminSummary(routes, employees, occurrences = []) {
-  const operated = routes.filter((route) => route.status !== 'planned');
+  const operated = routes.filter((route) => ['in_progress', 'delayed', 'completed'].includes(route.status));
   const capacity = operated.reduce((total, route) => total + route.capacity, 0);
   const boarded = operated.reduce((total, route) => total + routeBoarded(route), 0);
   return {
@@ -33,7 +33,7 @@ export function adminSummary(routes, employees, occurrences = []) {
 }
 
 export function criticalRoutes(routes, threshold = 60) {
-  return routes.filter((route) => route.status !== 'planned' && routeOccupancy(route) < threshold);
+  return routes.filter((route) => ['in_progress', 'delayed', 'completed'].includes(route.status) && routeOccupancy(route) < threshold);
 }
 
 export function routeHistory(route) {

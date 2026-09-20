@@ -49,7 +49,7 @@ export default function CancelTrip() {
           marginTop: '4rem',
         }}
       >
-        <CheckCircle2 size={64} color="var(--secondary)" style={{ marginBottom: '1rem' }} />
+        <CheckCircle2 size={64} color="var(--success)" style={{ marginBottom: '1rem' }} />
         <h2>Viagem cancelada</h2>
         <p>Cancelamento registrado só para hoje. Seu plano semanal continua valendo.</p>
       </div>

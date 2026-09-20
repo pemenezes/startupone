@@ -1,21 +1,16 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from 'react';
 import { fetchCompanyOperations } from '../../lib/companyOperations';
 import {
   adminCompany, adminCreditTransactions, adminEmployees, adminOccurrences, adminRoutes,
 } from '../../data/presentationCompanyData';
 import { CompanyContext } from './company-context';
+import { readPresentationJourney, subscribePresentationJourney } from '../../lib/presentationMobility';
+import { composeCompanyPresentation } from '../../data/companyPresentationBridge';
 
 const presentationData = {
   company: adminCompany,
   employees: adminEmployees,
-  routes: adminRoutes.map((route) => ({
-    ...route,
-    code: route.id,
-    history: Array.from({ length: 30 }, (_, index) => ({
-      day: index + 1,
-      occupancy: Math.max(12, Math.min(100, route.historyBase + (((index * 7 + route.id.length * 3) % 19) - 9))),
-    })),
-  })),
+  routes: adminRoutes,
   creditTransactions: adminCreditTransactions,
   occurrences: adminOccurrences,
 };
@@ -23,6 +18,8 @@ const presentationData = {
 export default function CompanyProvider({ children }) {
   // The presentation stays available while the optional Supabase view loads.
   const [data, setData] = useState(presentationData);
+  const journey = useSyncExternalStore(subscribePresentationJourney, readPresentationJourney, readPresentationJourney);
+  const displayed = useMemo(() => composeCompanyPresentation(data, journey), [data, journey]);
   const refresh = useCallback(async () => {
     try {
       const next = await fetchCompanyOperations();
@@ -43,5 +40,5 @@ export default function CompanyProvider({ children }) {
     };
   }, [refresh]);
 
-  return <CompanyContext.Provider value={{ ...data, refresh }}>{children}</CompanyContext.Provider>;
+  return <CompanyContext.Provider value={{ ...displayed, refresh }}>{children}</CompanyContext.Provider>;
 }
