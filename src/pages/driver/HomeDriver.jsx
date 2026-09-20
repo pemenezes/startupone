@@ -1,14 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { CheckCircle2, Clock3, MapPinned, Play, Square } from 'lucide-react';
+import { CheckCircle2, Clock3, Play, Square } from 'lucide-react';
 import { useDriver } from './driver-context';
 import { directionLabel } from '../../lib/schedule';
 import { formatDriverDate } from '../../lib/driverSchedule';
 import { formatJourneyTime } from '../../lib/driverJourneys';
 import { attendanceCounts } from '../../lib/driverAttendanceState';
 import { DriverEmpty, DriverError, DriverLoading } from './DriverUI';
-import { exampleCounts, EXAMPLE_ROUTE } from '../../lib/exampleJourney';
-import { useExampleJourney } from '../../lib/useExampleJourney';
 
 function FinishJourneyDialog({ onClose, onConfirm, loading, pendingCount, attendanceUnavailable }) {
   const dialog = useRef(null);
@@ -98,7 +96,7 @@ function OperationCard() {
         <>
           <div className="driver-operation-time"><Clock3 size={19} aria-hidden="true" /><span>Iniciada às <strong>{formatJourneyTime(operation.data.started_at)}</strong></span></div>
           {attendance.loading ? <DriverLoading>Carregando embarques...</DriverLoading> : attendance.error ? <DriverError error={attendance.error} onRetry={attendance.refresh} /> : <div className="driver-attendance-summary"><span><strong>{counts.expected}</strong> aguardando</span><span><strong>{counts.boarded}</strong> embarcados</span><span><strong>{counts.absent}</strong> ausentes</span></div>}
-          <Link className="btn btn-primary" to="/driver/map">Retomar jornada</Link>
+          <Link className="btn btn-primary" to="/driver">Retomar jornada</Link>
           <button className="btn btn-outline" type="button" onClick={() => setConfirmingFinish(true)} disabled={operationAction.loading}>
             <Square size={17} aria-hidden="true" />Finalizar jornada
           </button>
@@ -118,8 +116,6 @@ function OperationCard() {
 
 export default function HomeDriver() {
   const { journey, passengers, attendance, assignment, status, day, operationState } = useDriver();
-  const example = useExampleJourney();
-  const examplePending = exampleCounts(example).expected;
   const route = assignment?.route;
   const persisted = operationState === 'in_progress' || operationState === 'completed';
   const passengerSource = persisted ? attendance : passengers;
@@ -127,7 +123,6 @@ export default function HomeDriver() {
 
   return <div className="page-transition driver-stack">
     <div><h1>Sua jornada</h1><p>{formatDriverDate(day)} · Horário de Brasília</p></div>
-    <section className="card driver-stack example-home-card" aria-label="Jornada de exemplo"><div className="example-section-heading"><div><span className="eyebrow">Exemplo interativo</span><h2>{EXAMPLE_ROUTE.name}</h2></div><MapPinned size={23} aria-hidden="true" /></div><p>{example.completedAt ? 'Jornada ilustrativa concluída. Você pode reiniciá-la para outra apresentação.' : example.startedAt ? `${examplePending} passageiro(s) aguardando. Continue de onde parou.` : 'Explore a jornada com mapa, paradas, embarques e a visão do passageiro.'}</p><Link className="btn btn-primary" to="/driver/example">{example.startedAt ? 'Abrir jornada de exemplo' : 'Explorar exemplo'}</Link></section>
     {journey.loading ? <DriverLoading>Carregando jornada...</DriverLoading> : journey.error ?
       <DriverError error={journey.error} onRetry={journey.refresh} /> : !assignment ?
       <DriverEmpty title="Nenhuma rota assumida"><p>Escolha uma empresa e uma rota para consultar sua operação de segunda a sexta.</p><Link className="btn btn-primary" to="/driver/claim-route">Assumir rota</Link></DriverEmpty> :

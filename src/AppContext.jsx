@@ -33,7 +33,14 @@ export function AppProvider({ children }) {
           wallet: {
             ...seedEmployee.wallet,
             balance,
-            lastTopUp: profile.credit_last_top_up || seedEmployee.wallet.lastTopUp,
+            lastTopUp: profile.credit_last_top_up || null,
+          },
+          penalties: {
+            active: 0,
+            warnings: Number(profile.no_show_count || 0),
+            noShows: Number(profile.no_show_count || 0),
+            status: Number(profile.no_show_count || 0) >= 3 ? 'suspended' : Number(profile.no_show_count || 0) > 0 ? 'warning' : 'stable',
+            nextPenaltyAt: 3,
           },
         },
       ]);

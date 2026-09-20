@@ -8,13 +8,15 @@ import CompanyRoutes from './CompanyRoutes';
 import CompanyCredits from './CompanyCredits';
 import { useAuth } from '../../auth-context';
 import ComfyBrand from '../../components/ComfyBrand';
-import { adminCompany } from '../../data/adminDemo';
+import CompanyProvider from './CompanyProvider';
+import { useCompanyData } from './company-context';
 import './admin.css';
 
-export default function CompanyLayout() {
+function CompanyShell() {
   const navigate = useNavigate();
   const location = useLocation();
   const { signOut } = useAuth();
+  const { company } = useCompanyData();
 
   const handleLogout = async () => {
     await signOut();
@@ -44,7 +46,7 @@ export default function CompanyLayout() {
         <div style={{ padding: '2rem', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
           <ComfyBrand inverse compact />
           <p style={{ margin: 0, opacity: 0.7, fontSize: '0.9rem' }}>Painel Corporativo</p>
-          <div className="admin-company-identity"><strong>{adminCompany.name}</strong><small>Plano {adminCompany.plan} · exemplo</small></div>
+          <div className="admin-company-identity"><strong>{company.name}</strong><small>Plano {company.plan}</small></div>
         </div>
 
         <nav className="company-navigation" style={{ flex: 1, padding: '1.5rem 1rem' }}>
@@ -104,4 +106,8 @@ export default function CompanyLayout() {
       </main>
     </div>
   );
+}
+
+export default function CompanyLayout() {
+  return <CompanyProvider><CompanyShell /></CompanyProvider>;
 }

@@ -1,18 +1,17 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Routes, Route, useNavigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { Bell, LogOut } from 'lucide-react';
 import BottomNav from '../../components/BottomNav';
 import NotificationsPanel from '../../components/NotificationsPanel';
 import EmployeeFlowGate from '../../components/EmployeeFlowGate';
-import { TripProvider, useTrip } from '../../TripContext';
+import { TripProvider } from '../../TripContext';
 import { useAuth } from '../../auth-context';
+import { useNotifications } from '../../lib/useNotifications';
 import {
   DEFAULT_NOTIFICATION_PREFS,
   fetchNotificationPrefs,
   filterNotificationsByPrefs,
 } from '../../lib/notificationPrefs';
-import HomeEmployee from './HomeEmployee';
-import ExamplePassengerView from './ExamplePassengerView';
 import TrackVan from './TrackVan';
 import Credits from './Credits';
 import CreditHistory from './CreditHistory';
@@ -28,45 +27,13 @@ import OnboardingCompany from './OnboardingCompany';
 import OnboardingAddresses from './OnboardingAddresses';
 import OnboardingRegion from './OnboardingRegion';
 import OnboardingRoute from './OnboardingRoute';
-
-const initialNotifications = [
-  {
-    id: 1,
-    category: 'penalties',
-    type: 'warning',
-    title: 'Advertência registrada',
-    message: 'Você possui 1 advertência por ausência sem cancelamento prévio.',
-    createdAt: '2026-06-21T09:30:00',
-    read: false,
-    actionUrl: '/employee/help',
-  },
-  {
-    id: 2,
-    category: 'tripUpdates',
-    type: 'info',
-    title: 'Van a caminho',
-    message: 'Sua van está a cerca de 12 minutos do ponto de embarque.',
-    createdAt: '2026-06-21T17:50:00',
-    read: true,
-    actionUrl: '/employee/track',
-  },
-  {
-    id: 3,
-    category: 'credits',
-    type: 'success',
-    title: 'Saldo atualizado',
-    message: 'Uma movimentação recente alterou o saldo da sua conta.',
-    createdAt: '2026-06-20T11:15:00',
-    read: true,
-    actionUrl: '/employee/credits',
-  },
-];
+import '../../mobility.css';
 
 function EmployeeShell() {
   const navigate = useNavigate();
+  const { pathname } = useLocation();
   const { signOut, profile } = useAuth();
-  const { hasActiveTrip } = useTrip();
-  const [notifications, setNotifications] = useState(initialNotifications);
+  const { notifications, markRead } = useNotifications(profile?.id);
   const [prefs, setPrefs] = useState(DEFAULT_NOTIFICATION_PREFS);
   const [isOpen, setIsOpen] = useState(false);
 
@@ -93,10 +60,6 @@ function EmployeeShell() {
     [notifications, prefs]
   );
 
-  const handleMarkAsRead = (id) => {
-    setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)));
-  };
-
   const unreadCount = visibleNotifications.filter((n) => !n.read).length;
   const firstName = (profile?.full_name || '').trim().split(/\s+/)[0];
 
@@ -105,22 +68,16 @@ function EmployeeShell() {
     navigate('/login', { replace: true });
   };
 
-  const handleTrackNav = () => {
-    if (!hasActiveTrip) {
-      navigate('/employee/onboarding/route');
-      return;
-    }
-    navigate('/employee/track');
-  };
-
+  const normalizedPath = pathname.replace(/\/+$/, '') || '/';
+  const mapScreen = normalizedPath === '/employee' || normalizedPath === '/employee/track';
   return (
-    <div className="container" style={{ paddingBottom: '80px', position: 'relative' }}>
+    <div className={`container employee-shell ${mapScreen ? 'is-map-screen' : ''}`} style={{ paddingBottom: mapScreen ? 0 : '80px', position: 'relative' }}>
       <header
         style={{
           padding: '1rem',
           backgroundColor: 'var(--primary)',
           color: 'white',
-          display: 'flex',
+          display: mapScreen ? 'none' : 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
           borderBottomLeftRadius: 'var(--radius-lg)',
@@ -179,9 +136,23 @@ function EmployeeShell() {
         </div>
       </header>
 
+      {mapScreen && (
+        <button
+          className="employee-map-notifications"
+          type="button"
+          aria-label={`Notificações${unreadCount > 0 ? `, ${unreadCount} não lidas` : ''}`}
+          aria-expanded={isOpen}
+          onClick={() => setIsOpen((open) => !open)}
+        >
+          <Bell size={21} aria-hidden="true" />
+          {unreadCount > 0 && <span className="employee-map-notifications__unread" />}
+        </button>
+      )}
+
       {isOpen && (
         <>
           <div
+            className={mapScreen ? 'employee-map-notifications-backdrop' : undefined}
             onClick={() => setIsOpen(false)}
             style={{
               position: 'fixed',
@@ -193,23 +164,25 @@ function EmployeeShell() {
               backgroundColor: 'transparent',
             }}
           />
-          <NotificationsPanel
-            notifications={visibleNotifications}
-            onMarkAsRead={handleMarkAsRead}
-            onClose={() => setIsOpen(false)}
-          />
+          <div className={mapScreen ? 'employee-map-notifications-panel' : 'employee-header-notifications-panel'}>
+            <NotificationsPanel
+              notifications={visibleNotifications}
+              onMarkAsRead={markRead}
+              onClose={() => setIsOpen(false)}
+            />
+          </div>
         </>
       )}
 
-      <div style={{ padding: '1rem' }}>
+      <div className="employee-content" style={{ padding: mapScreen ? 0 : '1rem' }}>
         <EmployeeFlowGate>
           <Routes>
-            <Route path="/" element={<HomeEmployee />} />
-            <Route path="/track" element={<TrackVan />} />
-            <Route path="/example" element={<ExamplePassengerView />} />
+            <Route path="/" element={<TrackVan />} />
+            <Route path="/track" element={<Navigate to="/employee" replace />} />
             <Route path="/credits" element={<Credits />} />
             <Route path="/credits/history" element={<CreditHistory />} />
             <Route path="/profile" element={<Profile />} />
+            <Route path="/route-settings" element={<OnboardingRoute mode="settings" />} />
             <Route path="/help" element={<HelpSupport />} />
             <Route path="/security" element={<AccountSecurity />} />
             <Route path="/notifications" element={<NotificationPreferences />} />
@@ -221,12 +194,12 @@ function EmployeeShell() {
             <Route path="/onboarding/addresses" element={<OnboardingAddresses />} />
             <Route path="/onboarding/region" element={<OnboardingRegion />} />
             <Route path="/onboarding/route" element={<OnboardingRoute />} />
-            <Route path="*" element={<HomeEmployee />} />
+            <Route path="*" element={<TrackVan />} />
           </Routes>
         </EmployeeFlowGate>
       </div>
 
-      <BottomNav role="employee" onTrackNavigate={handleTrackNav} hasActiveTrip={hasActiveTrip} />
+      {!mapScreen && <BottomNav role="employee" />}
     </div>
   );
 }

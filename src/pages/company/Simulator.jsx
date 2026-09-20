@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { Calculator, Send, CheckCircle2 } from 'lucide-react';
-import { adminCompany, adminEmployees } from '../../data/adminDemo';
+import { useCompanyData } from './company-context';
 
 export default function Simulator() {
-  const [employees, setEmployees] = useState(adminEmployees.length);
+  const { company, employees: registeredEmployees } = useCompanyData();
+  const [employees, setEmployees] = useState(registeredEmployees.length);
   const [vtCost, setVtCost] = useState(480);
   const [simulated, setSimulated] = useState(false);
   const vans = Math.ceil(Math.max(0, employees) / 15);
@@ -19,7 +20,7 @@ export default function Simulator() {
       <div style={{ marginBottom: '2rem' }}>
         <h1 style={{ fontSize: '2rem', margin: 0 }}>Simulador de Demanda e Custo</h1>
         <p style={{ color: 'var(--text-secondary)' }}>
-          Estime a quantidade de veículos para o plano {adminCompany.plan}. O custo contratual depende da regra comercial a validar.
+          Estime a quantidade de veículos para o plano {company.plan}. O custo contratual depende da regra comercial a validar.
         </p>
       </div>
 
@@ -64,7 +65,7 @@ export default function Simulator() {
               <CheckCircle2 size={32} color="var(--primary)" />
               <div>
                 <h2 style={{ margin: 0, color: 'var(--primary)' }}>Cenário Projetado</h2>
-                <p style={{ margin: 0, color: 'var(--text-secondary)' }}>Plano {adminCompany.plan} · capacidade ilustrativa de 15 lugares por van</p>
+                <p style={{ margin: 0, color: 'var(--text-secondary)' }}>Plano {company.plan} · estimativa de 15 lugares por van</p>
               </div>
             </div>
 
@@ -91,7 +92,7 @@ export default function Simulator() {
               <div style={{ textAlign: 'right' }}>
                 <p style={{ margin: 0, fontWeight: 'bold' }}>Contrato Comfy</p>
                 <h2 style={{ margin: 0, color: 'var(--primary)', fontSize: '1.5rem' }}>A confirmar</h2>
-                <p style={{ margin: '0.4rem 0 0', color: 'var(--text-secondary)', fontSize: '0.8rem' }}>O exemplo atual da empresa é {adminCompany.monthlyContract.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} para {adminEmployees.length} colaboradores; a fórmula para outro cenário ainda não foi definida.</p>
+                <p style={{ margin: '0.4rem 0 0', color: 'var(--text-secondary)', fontSize: '0.8rem' }}>O contrato atual registra {Number(company.monthlyContract || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} para {registeredEmployees.length} colaboradores; a fórmula para outro cenário ainda não foi definida.</p>
               </div>
             </div>
           </div>

@@ -373,6 +373,11 @@ p {
 .notice-card--warning { color: var(--warning); border-color: #f0d19a; background: var(--warning-light); }
 .notice-card--danger { color: var(--danger); border-color: #f4c7c3; background: var(--danger-light); }
 .journey-card { display: grid; gap: 1rem; }
+.journey-card--compact { gap: .8rem; }
+.journey-card--compact > p { font-size: .85rem; }
+.journey-card__focus { display: flex; align-items: baseline; gap: .65rem; }
+.journey-card__focus strong { color: var(--primary); font-size: 1.7rem; line-height: 1; }
+.journey-card__focus span { color: var(--text-secondary); font-size: .75rem; }
 .journey-card > header { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; }
 .journey-card h2, .journey-card small { margin: 0; }
 .journey-card small { color: var(--text-secondary); }

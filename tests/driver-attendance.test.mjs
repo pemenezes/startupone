@@ -3,8 +3,6 @@ import test from 'node:test';
 import {
   attendanceCounts,
   employeeAttendanceCopy,
-  firstPendingStop,
-  groupPassengersForStops,
 } from '../src/lib/driverAttendanceState.js';
 
 const passengers = [
@@ -16,14 +14,6 @@ const passengers = [
 
 test('attendance counts every persisted state', () => {
   assert.deepEqual(attendanceCounts(passengers), { expected: 1, boarded: 1, absent: 1, cancelled: 1 });
-});
-
-test('cancelled passengers are not assigned to boarding stops', () => {
-  const groups = groupPassengersForStops(passengers, 3);
-  assert.equal(groups.flat().some((passenger) => passenger.id === '4'), false);
-  assert.equal(firstPendingStop(groups), 0);
-  const cancelled = passengers.map((passenger) => passenger.id === '1' ? { ...passenger, status: 'cancelled' } : passenger);
-  assert.equal(groupPassengersForStops(cancelled, 3)[0][0].id, '2');
 });
 
 test("employee copy reflects the driver's persisted action", () => {

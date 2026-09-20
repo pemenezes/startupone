@@ -5,10 +5,9 @@ export const JOURNEY_STATUS = Object.freeze({
 });
 
 export function journeyDisplayState(record, dayStatus) {
-  if (record?.status === JOURNEY_STATUS.IN_PROGRESS) return JOURNEY_STATUS.IN_PROGRESS;
+  if (record && Object.values(JOURNEY_STATUS).includes(record.status)) return record.status;
   if (dayStatus !== 'scheduled') return 'unavailable';
   if (!record) return 'planned';
-  if (Object.values(JOURNEY_STATUS).includes(record.status)) return record.status;
   return 'unavailable';
 }
 

@@ -1,12 +1,10 @@
 import React from 'react';
 import { ArrowLeft, Car, ShieldCheck, Star } from 'lucide-react';
 import { useNavigate, Navigate } from 'react-router-dom';
-import { useAppContext } from '../../app-context';
 import { useTrip } from '../../TripContext';
 
 export default function DriverProfile() {
   const navigate = useNavigate();
-  const { driver: mockDriver } = useAppContext();
   const { activeTrip, hasActiveTrip } = useTrip();
 
   if (!hasActiveTrip) {
@@ -26,7 +24,9 @@ export default function DriverProfile() {
             : '—',
         },
       }
-    : mockDriver;
+    : null;
+
+  if (!driver) return <div className="card" style={{ margin: '1rem' }}>O motorista desta viagem ainda não foi definido.</div>;
 
   return (
     <div className="page-transition">
@@ -34,7 +34,7 @@ export default function DriverProfile() {
         <ArrowLeft size={18} /> Voltar
       </button>
       <article className="card profile-hero">
-        <img className="profile-hero__avatar" src={driver.photo} alt={driver.name} />
+        {driver.photo && <img className="profile-hero__avatar" src={driver.photo} alt={driver.name} />}
         <span className="eyebrow">Seu motorista hoje</span>
         <h1>{driver.name}</h1>
         <div className="rating-line">

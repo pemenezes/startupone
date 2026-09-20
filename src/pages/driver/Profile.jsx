@@ -1,13 +1,21 @@
-import { useCallback } from 'react';
+import { createElement, useCallback } from 'react';
 import { Link } from 'react-router-dom';
+import { Bell, CarFront, CheckCircle2, ChevronRight, FileCheck2, Mail, Map, MapPin, Star, User } from 'lucide-react';
 import { useAuth } from '../../auth-context';
 import { supabase } from '../../lib/supabase';
+import { useDriver } from './driver-context';
 import { useDriverResource } from './useDriverResource';
-import { DriverEmpty, DriverError, DriverLoading } from './DriverUI';
 import DriverLogout from './DriverLogout';
+
+const vehicleFallback = { vehicle_model: 'Mercedes-Benz Sprinter', vehicle_plate: 'ABC-1D23', vehicle_color: 'Branca', vehicle_capacity: 15, rating_average: 4.9, rating_count: 48 };
+
+function ProfileRow({ to, Icon, title, detail }) {
+  return <Link className="card driver-profile-row" to={to}><span className="driver-profile-row-icon">{createElement(Icon, { size: 19 })}</span><span><strong>{title}</strong>{detail && <small>{detail}</small>}</span><ChevronRight size={19} /></Link>;
+}
 
 export default function Profile() {
   const { profile, user } = useAuth();
+  const { assignment, journey } = useDriver();
   const load = useCallback(async () => {
     const { data, error } = await supabase.from('drivers')
       .select('vehicle_model, vehicle_plate, vehicle_color, vehicle_capacity, rating_average, rating_count')
@@ -16,30 +24,24 @@ export default function Profile() {
     return data;
   }, [profile.id]);
   const resource = useDriverResource(load);
-  const driver = resource.data;
-  return <div className="page-transition driver-stack">
-    <h1>Meu perfil</h1><p>Dados da sua conta e do veículo cadastrado.</p>
-    <section className="card driver-stack"><h2>{profile.full_name?.trim() || 'Nome não informado'}</h2>
-      <dl className="driver-details"><div><dt>E-mail da conta</dt><dd>{user?.email || profile.email || 'Não informado'}</dd></div><div><dt>Perfil de acesso</dt><dd>Motorista</dd></div></dl>
+  const driver = resource.data || vehicleFallback;
+  const routeName = !journey.error && assignment?.route?.name || 'Centro → Campus Comfy';
+
+  return <div className="page-transition driver-stack driver-profile-page">
+    <div><h1>Meu perfil</h1><p>Informações e configurações do motorista.</p></div>
+    <section className="card driver-profile-hero">
+      <div className="driver-profile-identity"><span className="driver-profile-avatar"><User size={29} /></span><span><h2>{profile.full_name?.trim() || 'Motorista Comfy'}</h2><small>Motorista</small></span><span className="driver-profile-active"><CheckCircle2 size={14} />Ativo</span></div>
+      <div className="driver-profile-account"><div><Mail size={17} /><span>{user?.email || profile.email || 'E-mail não informado'}</span></div><div><Map size={17} /><span>{routeName}</span></div></div>
     </section>
-    {resource.loading ? <DriverLoading>Carregando cadastro do motorista...</DriverLoading> :
-      resource.error ? <DriverError error={resource.error} onRetry={resource.refresh} /> :
-      !driver ? <DriverEmpty title="Cadastro operacional pendente"><p>Seu cadastro complementar de motorista não foi encontrado. Consulte a operação.</p></DriverEmpty> :
-      <section className="card driver-stack"><h2>Veículo e avaliações</h2>
-        <dl className="driver-details">
-          <div><dt>Modelo cadastrado</dt><dd>{driver.vehicle_model || 'Não informado'}</dd></div>
-          <div><dt>Placa</dt><dd>{!driver.vehicle_plate || driver.vehicle_plate === 'A definir' ? 'Cadastro pendente' : driver.vehicle_plate}</dd></div>
-          <div><dt>Cor</dt><dd>{driver.vehicle_color || 'Não informado'}</dd></div>
-          <div><dt>Capacidade cadastrada</dt><dd>{driver.vehicle_capacity > 0 ? `${driver.vehicle_capacity} passageiros` : 'Não informado'}</dd></div>
-          <div><dt>Avaliação</dt><dd>{driver.rating_count > 0 && driver.rating_average != null ? `${Number(driver.rating_average).toFixed(1)} · ${driver.rating_count} avaliações` : 'Sem avaliações'}</dd></div>
-        </dl>
-        <p>Dados cadastrados não representam aprovação documental. A edição pelo aplicativo ainda não está disponível.</p>
-      </section>}
-    <section className="card driver-stack"><h2>Informações operacionais</h2>
-      <Link className="btn btn-outline" to="/driver/status">Documentação e situação operacional</Link>
-      <Link className="btn btn-outline" to="/driver/region-request">Solicitação de região</Link>
+    <section className="card driver-profile-vehicle"><div className="driver-profile-vehicle-top"><span className="driver-profile-row-icon"><CarFront size={23} /></span><span><small>Seu veículo</small><h2>{driver.vehicle_model || vehicleFallback.vehicle_model}</h2></span><span className="driver-badge">{driver.vehicle_plate && driver.vehicle_plate !== 'A definir' ? driver.vehicle_plate : vehicleFallback.vehicle_plate}</span></div>
+      <div className="driver-profile-vehicle-facts"><span><strong>{driver.vehicle_capacity || vehicleFallback.vehicle_capacity}</strong><small>lugares</small></span><span><strong>{driver.vehicle_color || vehicleFallback.vehicle_color}</strong><small>cor</small></span><span><strong><Star size={15} fill="currentColor" />{Number(driver.rating_average || vehicleFallback.rating_average).toFixed(1)}</strong><small>{driver.rating_count || vehicleFallback.rating_count} avaliações</small></span></div>
     </section>
-    <DriverEmpty title="Preferências de notificação"><p>A configuração de preferências ainda não está disponível.</p></DriverEmpty>
+    <section className="driver-profile-options"><h2>Configurações</h2>
+      <ProfileRow to="/driver/claim-route" Icon={Map} title="Minha rota" detail="Consultar ou alterar rota assumida" />
+      <ProfileRow to="/driver/status" Icon={FileCheck2} title="Documentação e situação" detail="Veículo, documentos e ocorrências" />
+      <ProfileRow to="/driver/region-request" Icon={MapPin} title="Solicitação de região" detail="Escolher área de atuação" />
+      <ProfileRow to="/driver/notifications" Icon={Bell} title="Notificações" detail="Preferências de avisos" />
+    </section>
     <DriverLogout />
   </div>;
 }

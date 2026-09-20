@@ -9,19 +9,23 @@ import { useTrip } from '../TripContext';
 export default function EmployeeFlowGate({ children }) {
   const location = useLocation();
   const { profile } = useAuth();
-  const { loading, onboardingComplete, hasSubscription, hasActiveTrip } = useTrip();
+  const { loading, onboardingComplete, hasSubscription, hasActiveTrip, todayRides } = useTrip();
 
   const path = location.pathname;
   const isOnboarding = path.startsWith('/employee/onboarding');
-  if (path === '/employee/example') return children;
+  const presentationPath = path === '/employee' || path === '/employee/track' ||
+    path === '/employee/profile' || path === '/employee/route-settings' ||
+    path.startsWith('/employee/credits');
 
-  if (loading && !isOnboarding) {
+  if (loading && !isOnboarding && !presentationPath) {
     return (
       <div style={{ padding: '2rem', textAlign: 'center' }}>
         Carregando seu plano de rotas...
       </div>
     );
   }
+
+  if (presentationPath) return children;
 
   if (!profile?.company_id && !path.includes('/onboarding/company')) {
     return <Navigate to="/employee/onboarding/company" replace />;
@@ -80,7 +84,7 @@ export default function EmployeeFlowGate({ children }) {
   // Track/cancel only when expected today
   if (
     hasSubscription &&
-    !hasActiveTrip &&
+    !hasActiveTrip && !todayRides.length &&
     (path.startsWith('/employee/track') || path.startsWith('/employee/cancel'))
   ) {
     return <Navigate to="/employee" replace />;

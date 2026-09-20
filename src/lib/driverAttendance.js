@@ -14,7 +14,7 @@ export async function fetchJourneyPassengers(journeyId) {
   if (!journeyId) return [];
   const { data, error } = await supabase
     .from('driver_journey_passengers')
-    .select('id, journey_id, passenger_id, passenger_name, boarding_address, status, recorded_at, updated_at')
+    .select('id, journey_id, passenger_id, passenger_name, boarding_address, boarding_stop_id, status, recorded_at, updated_at')
     .eq('journey_id', journeyId)
     .order('passenger_name');
   if (error) throw attendanceError(error, 'Não foi possível consultar os passageiros desta jornada.');
@@ -36,7 +36,7 @@ export async function fetchEmployeeJourneyStatuses(passengerId, serviceDate) {
   if (!passengerId || !serviceDate) return [];
   const { data, error } = await supabase
     .from('driver_journey_passengers')
-    .select('id, passenger_id, status, recorded_at, journey:driver_journeys!inner(id, route_id, service_date, status, started_at, completed_at)')
+    .select('id, passenger_id, boarding_stop_id, status, recorded_at, journey:driver_journeys!inner(id, route_id, service_date, status, started_at, completed_at, position_lat, position_lng, position_updated_at, eta_minutes, delay_minutes, vehicle_model, vehicle_plate)')
     .eq('passenger_id', passengerId)
     .eq('journey.service_date', serviceDate);
   if (error) throw attendanceError(error, 'Não foi possível consultar a situação da sua viagem.');

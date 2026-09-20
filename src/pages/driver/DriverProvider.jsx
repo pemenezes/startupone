@@ -13,6 +13,7 @@ import {
   fetchJourneyPassengers,
   recordJourneyPassengerStatus,
 } from '../../lib/driverAttendance';
+import { confirmJourneyStop, fetchJourneyStopArrivals, fetchRouteStops } from '../../lib/mobility';
 import { DriverContext } from './driver-context';
 import { useDriverResource } from './useDriverResource';
 
@@ -62,6 +63,10 @@ export default function DriverProvider({ children }) {
     [operation.data?.id],
   );
   const attendance = useDriverResource(loadAttendance);
+  const loadStops = useCallback(() => fetchRouteStops(assignment?.route_id), [assignment?.route_id]);
+  const stops = useDriverResource(loadStops);
+  const loadArrivals = useCallback(() => fetchJourneyStopArrivals(operation.data?.id), [operation.data?.id]);
+  const arrivals = useDriverResource(loadArrivals);
 
   const runOperation = async (action) => {
     if (operationAction.loading) return null;
@@ -92,6 +97,11 @@ export default function DriverProvider({ children }) {
       return null;
     }
   };
+  const confirmStop = async (stopId) => runOperation(async () => {
+    const result = await confirmJourneyStop(operation.data?.id, stopId);
+    arrivals.refresh();
+    return result;
+  });
 
   return (
     <DriverContext.Provider value={{
@@ -104,10 +114,13 @@ export default function DriverProvider({ children }) {
       operationState,
       operationAction,
       attendance,
+      stops,
+      arrivals,
       attendanceAction,
       startJourney,
       finishJourney,
       recordAttendance,
+      confirmStop,
     }}>
       {children}
     </DriverContext.Provider>

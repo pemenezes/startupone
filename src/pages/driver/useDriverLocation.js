@@ -1,10 +1,9 @@
 import { useEffect, useState } from 'react';
-import { DEMO_ORIGIN } from '../../lib/driverDemo';
 
 export function useDriverLocation() {
   const [attempt, setAttempt] = useState(0);
   const [location, setLocation] = useState({
-    origin: DEMO_ORIGIN, position: null, accuracy: null, timestamp: null, status: 'idle', message: '',
+    origin: null, position: null, accuracy: null, timestamp: null, status: 'idle', message: '',
   });
   useEffect(() => {
     if (!attempt) return;

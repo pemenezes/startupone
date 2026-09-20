@@ -15,7 +15,7 @@ export async function fetchDriverJourney(driverId, routeId, serviceDate) {
   if (!driverId || !routeId || !serviceDate) return null;
   const { data: active, error: activeError } = await supabase
     .from('driver_journeys')
-    .select('id, driver_id, route_id, assignment_id, service_date, direction, status, vehicle_model, vehicle_plate, started_at, completed_at, cancelled_at, created_at, updated_at')
+    .select('id, driver_id, route_id, assignment_id, service_date, direction, status, vehicle_model, vehicle_plate, position_lat, position_lng, position_updated_at, eta_minutes, delay_minutes, started_at, completed_at, cancelled_at, created_at, updated_at')
     .eq('driver_id', driverId)
     .eq('status', 'in_progress')
     .maybeSingle();
@@ -25,7 +25,7 @@ export async function fetchDriverJourney(driverId, routeId, serviceDate) {
 
   const { data, error } = await supabase
     .from('driver_journeys')
-    .select('id, driver_id, route_id, assignment_id, service_date, direction, status, vehicle_model, vehicle_plate, started_at, completed_at, cancelled_at, created_at, updated_at')
+    .select('id, driver_id, route_id, assignment_id, service_date, direction, status, vehicle_model, vehicle_plate, position_lat, position_lng, position_updated_at, eta_minutes, delay_minutes, started_at, completed_at, cancelled_at, created_at, updated_at')
     .eq('driver_id', driverId)
     .eq('route_id', routeId)
     .eq('service_date', serviceDate)

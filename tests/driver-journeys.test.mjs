@@ -17,6 +17,7 @@ test('operations outside a scheduled day cannot be started from the interface', 
 
 test('an open journey remains resumable after its service day changes', () => {
   assert.equal(journeyDisplayState({ status: JOURNEY_STATUS.IN_PROGRESS }, 'weekend'), 'in_progress');
+  assert.equal(journeyDisplayState({ status: JOURNEY_STATUS.COMPLETED }, 'weekend'), 'completed');
 });
 
 test('journey timestamps are shown in Brasilia time', () => {

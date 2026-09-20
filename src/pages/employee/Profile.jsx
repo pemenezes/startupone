@@ -17,6 +17,7 @@ import { useAppContext } from '../../app-context';
 import { useAuth } from '../../auth-context';
 import { fetchCompanyById } from '../../lib/companies';
 import { supabase } from '../../lib/supabase';
+import { selectedEmployeeRoute } from '../../lib/employeeRoutePreferences';
 
 function shortBadge(id) {
   if (!id) return '—';
@@ -45,13 +46,14 @@ export default function Profile() {
   const displayName = profile?.full_name || currentEmployee?.name || 'Colaborador';
   const email = profile?.email || currentEmployee?.email || '—';
   const badgeId = shortBadge(profile?.id || currentEmployee?.id);
+  const chosenRoute = selectedEmployeeRoute(profile?.id);
 
   useEffect(() => {
     let cancelled = false;
     const companyId = profile?.company_id;
     if (!companyId) {
-      setCompanyName('');
-      return undefined;
+      Promise.resolve().then(() => { if (!cancelled) setCompanyName(''); });
+      return () => { cancelled = true; };
     }
 
     fetchCompanyById(companyId)
@@ -80,7 +82,7 @@ export default function Profile() {
   }, [profile?.id]);
 
   const configItems = [
-    { label: 'Solicitar alteração de rota', icon: <Map size={18} color="var(--primary)" />, badge: 'Em breve' },
+    { label: 'Minha rota fixa', icon: <Map size={18} color="var(--primary)" />, path: '/employee/route-settings', badge: chosenRoute?.code },
     {
       label: 'Preferências de notificação',
       icon: <Bell size={18} color="var(--primary)" />,

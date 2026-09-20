@@ -1,22 +1,21 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Home, Map, CreditCard, User, Bus, Users, ClipboardList } from 'lucide-react';
+import { Map, CreditCard, User, Users, ClipboardList } from 'lucide-react';
 
-export default function BottomNav({ role, onTrackNavigate, hasActiveTrip }) {
+export default function BottomNav({ role, embedded = false }) {
   const navigate = useNavigate();
   const location = useLocation();
 
   const getNavItems = () => {
     if (role === 'employee') {
       return [
-        { label: 'Início', path: '/employee', Icon: Home },
-        { label: 'Mapa', path: '/employee/track', Icon: Map, requiresTrip: true },
+        { label: 'Mapa', path: '/employee', Icon: Map },
         { label: 'Créditos', path: '/employee/credits', Icon: CreditCard },
         { label: 'Perfil', path: '/employee/profile', Icon: User },
       ];
     } else if (role === 'driver') {
       return [
-        { label: 'Jornada', path: '/driver', Icon: Bus },
+        { label: 'Mapa', path: '/driver', Icon: Map },
         { label: 'Passageiros', path: '/driver/passengers', Icon: Users },
         { label: 'Histórico', path: '/driver/history', Icon: ClipboardList },
         { label: 'Perfil', path: '/driver/profile', Icon: User },
@@ -30,7 +29,7 @@ export default function BottomNav({ role, onTrackNavigate, hasActiveTrip }) {
   if (navItems.length === 0) return null;
 
   return (
-    <div className="bottom-nav">
+    <div className={`bottom-nav ${embedded ? 'is-embedded' : ''}`}>
       {navItems.map((item, index) => {
         const isRoot = item.path === `/${role}`;
         const finalActive = isRoot
@@ -43,14 +42,6 @@ export default function BottomNav({ role, onTrackNavigate, hasActiveTrip }) {
             key={index}
             type="button"
             onClick={() => {
-              if (item.requiresTrip && onTrackNavigate) {
-                onTrackNavigate();
-                return;
-              }
-              if (item.requiresTrip && !hasActiveTrip) {
-                navigate('/employee/onboarding/route');
-                return;
-              }
               navigate(item.path);
             }}
             className={`nav-item ${finalActive ? 'active' : ''}`}
@@ -65,7 +56,6 @@ export default function BottomNav({ role, onTrackNavigate, hasActiveTrip }) {
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
-              opacity: item.requiresTrip && hasActiveTrip === false ? 0.55 : 1,
             }}
           >
             <Icon size={22} strokeWidth={finalActive ? 2 : 1.6} color="currentColor" />

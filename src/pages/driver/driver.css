@@ -99,3 +99,80 @@
 .driver-confirm-actions { display: grid; gap: .6rem; margin-top: 1.25rem; }
 .driver-shell .driver-btn-absence { background: var(--danger); color: white; }
 @media (max-width: 360px) { .driver-route-heading { align-items: flex-start; } .driver-route-heading small { font-size: .6rem; } .driver-boarding-actions { gap: .4rem; } .driver-boarding-actions .btn { padding-inline: .4rem; font-size: .8rem; } }
+
+/* Driver presentation screens */
+.driver-shell.is-map-screen { position: relative; }
+.driver-map-notifications { position: absolute; top: max(16px, env(safe-area-inset-top)); right: 16px; z-index: 1004; display: grid; place-items: center; width: 44px; height: 44px; border: 0; border-radius: 50%; background: white; color: var(--brand-primary-deep); box-shadow: 0 5px 18px rgb(0 36 84 / .14); cursor: pointer; }
+.driver-map-notifications > span { position: absolute; top: 8px; right: 8px; width: 7px; height: 7px; border-radius: 50%; background: var(--danger); }
+.driver-shell.is-map-screen > .page-transition { z-index: 1005 !important; }
+.driver-mobility-page .mobility-map .driver-map-controls { top: 76px; }
+.driver-shell .trip-sheet.has-footer.is-standard .trip-sheet__details { display: none; }
+.driver-passenger-summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: .5rem; }
+.driver-passenger-summary span { display: grid; gap: .2rem; padding: .85rem .35rem; border: 1px solid var(--border); border-radius: .9rem; background: white; text-align: center; font-size: .73rem; color: var(--text-secondary); }
+.driver-passenger-summary strong { font-size: 1.45rem; color: var(--brand-primary-deep); }
+.driver-next-stop { display: flex; align-items: center; gap: .7rem; padding: .9rem; text-decoration: none; color: var(--text-primary); }
+.driver-next-stop > svg { flex-shrink: 0; color: var(--primary); }
+.driver-next-stop > span:nth-child(2) { display: grid; flex: 1; gap: .1rem; }
+.driver-next-stop small { color: var(--text-secondary); }
+.driver-next-stop > span:last-child { color: var(--primary); font-size: .8rem; font-weight: 700; }
+.driver-search { display: flex; align-items: center; gap: .5rem; padding: 0 .7rem; border: 1px solid var(--border); border-radius: .7rem; background: white; color: var(--text-secondary); }
+.driver-search .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+.driver-shell .driver-search input { border: 0; padding-left: 0; }
+.driver-passenger-page .driver-passengers li > p { display: flex; align-items: center; gap: .4rem; margin: 0; font-size: .85rem; }
+.driver-passenger-page .driver-passengers li > p svg { color: var(--primary); }
+.driver-passenger-page .driver-passengers li > small { color: var(--text-secondary); }
+.driver-history-summary { display: flex; align-items: center; gap: .75rem; padding: 1rem; border-radius: .9rem; background: var(--primary-light); color: var(--primary); }
+.driver-history-summary > span { display: grid; gap: .15rem; }
+.driver-history-summary small { color: var(--text-secondary); }
+.driver-history-list { display: grid; gap: .8rem; }
+.driver-history-card { display: grid; gap: .75rem; }
+.driver-history-heading { display: flex; align-items: center; gap: .7rem; width: 100%; padding: 0; border: 0; background: transparent; color: var(--text-primary); text-align: left; cursor: pointer; }
+.driver-history-heading > span:nth-child(2) { display: grid; flex: 1; gap: .2rem; }
+.driver-history-heading small { color: var(--text-secondary); }
+.driver-history-heading > svg { transition: transform .2s ease; }
+.driver-history-heading > svg.is-open { transform: rotate(180deg); }
+.driver-history-icon { display: grid; place-items: center; flex: 0 0 42px; height: 42px; border-radius: .75rem; background: var(--primary-light); color: var(--primary); }
+.driver-history-facts { display: flex; flex-wrap: wrap; gap: .6rem 1rem; color: var(--text-secondary); font-size: .8rem; }
+.driver-history-facts span { display: flex; align-items: center; gap: .3rem; }
+.driver-history-detail { border-top: 1px solid var(--border); }
+.driver-profile-page { gap: 1.4rem; padding-bottom: 1.5rem; }
+.driver-profile-hero, .driver-profile-vehicle { display: grid; gap: 1rem; }
+.driver-profile-identity { display: flex; align-items: center; gap: .8rem; }
+.driver-profile-identity > span:nth-child(2) { flex: 1; min-width: 0; }
+.driver-profile-identity h2 { margin: 0; }
+.driver-profile-identity small, .driver-profile-vehicle small { color: var(--text-secondary); }
+.driver-profile-avatar { display: grid; place-items: center; flex: 0 0 58px; height: 58px; border-radius: 50%; background: var(--primary-light); color: var(--primary); }
+.driver-profile-active { display: flex; align-items: center; gap: .2rem; padding: .25rem .5rem; border-radius: 99px; background: var(--success-light); color: var(--success); font-size: .72rem; font-weight: 700; }
+.driver-profile-account { display: grid; gap: .6rem; padding-top: 1rem; border-top: 1px solid var(--border); }
+.driver-profile-account > div { display: flex; align-items: center; gap: .6rem; min-width: 0; font-size: .85rem; overflow-wrap: anywhere; }
+.driver-profile-account svg { flex-shrink: 0; color: var(--text-secondary); }
+.driver-profile-vehicle-top { display: flex; align-items: center; gap: .65rem; }
+.driver-profile-vehicle-top > span:nth-child(2) { flex: 1; min-width: 0; }
+.driver-profile-vehicle-top h2 { margin: .1rem 0 0; }
+.driver-profile-vehicle-facts { display: grid; grid-template-columns: repeat(3, 1fr); padding-top: .8rem; border-top: 1px solid var(--border); }
+.driver-profile-vehicle-facts > span { display: grid; gap: .15rem; text-align: center; }
+.driver-profile-vehicle-facts strong { display: flex; align-items: center; justify-content: center; gap: .2rem; color: var(--brand-primary-deep); }
+.driver-profile-vehicle-facts strong svg { color: #e2a800; }
+.driver-profile-options { display: grid; gap: .55rem; }
+.driver-profile-options h2 { margin: .1rem 0; }
+.driver-profile-row { display: flex; align-items: center; gap: .75rem; min-width: 0; padding: .8rem; color: var(--text-primary); text-decoration: none; }
+.driver-profile-row > span:nth-child(2) { display: grid; flex: 1; min-width: 0; gap: .15rem; }
+.driver-profile-row small { color: var(--text-secondary); }
+.driver-profile-row > svg:last-child { flex-shrink: 0; color: var(--text-secondary); }
+.driver-profile-row-icon { display: grid; place-items: center; flex: 0 0 40px; height: 40px; border-radius: .75rem; background: var(--primary-light); color: var(--primary); }
+.driver-status-hero, .driver-status-penalties, .driver-region-current, .driver-region-saved { display: flex; align-items: center; gap: .8rem; }
+.driver-status-hero > div, .driver-status-penalties > div { flex: 1; }
+.driver-status-hero > svg:last-child, .driver-region-saved > svg { color: var(--success); }
+.driver-status-hero p, .driver-status-penalties p { margin: .2rem 0 0; }
+.driver-status-penalties > strong { font-size: 1.5rem; color: var(--success); }
+.driver-status-updated { display: flex; align-items: center; gap: .4rem; font-size: .8rem; }
+.driver-region-current > svg { color: var(--primary); }
+.driver-region-current span, .driver-region-saved span { display: grid; gap: .2rem; }
+.driver-region-current small, .driver-region-saved small { color: var(--text-secondary); }
+.driver-region-page textarea { width: 100%; min-height: 100px; padding: .7rem; border: 1px solid var(--border); border-radius: .5rem; font: inherit; resize: vertical; }
+.driver-notification-option { display: flex; align-items: center; gap: .75rem; }
+.driver-notification-option > span:nth-child(2) { display: grid; flex: 1; gap: .15rem; }
+.driver-notification-option small { color: var(--text-secondary); }
+.driver-shell .driver-notification-option input { width: 20px; height: 20px; min-height: 20px; accent-color: var(--primary); }
+.driver-settings-saved { display: flex; align-items: center; gap: .35rem; color: var(--success) !important; }
+@media (max-width: 400px) { .driver-profile-active { font-size: 0; } .driver-profile-active svg { width: 18px; height: 18px; } .driver-profile-vehicle-top { flex-wrap: wrap; } }

@@ -1,145 +1,83 @@
-import React from 'react';
-import { useNavigate, Navigate } from 'react-router-dom';
-import { ArrowLeft, Star, Navigation, MapPin, Car, Info } from 'lucide-react';
-import { MapContainer, TileLayer, Marker } from 'react-leaflet';
-import { PointIcon, VanIcon } from '../../components/MapMarkers';
+import { useEffect, useMemo, useState } from 'react';
+import { MapPin, Menu } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useTrip } from '../../TripContext';
-
-// Static map anchors until live driver GPS is implemented
-const BOARDING_CENTER = [-23.55052, -46.633308];
-const VAN_PLACEHOLDER = [-23.5555, -46.6403];
+import { useAuth } from '../../auth-context';
+import { selectedEmployeeRoute } from '../../lib/employeeRoutePreferences';
+import { fetchJourneyStopArrivals, fetchRouteStops, journeyPosition, passengerJourneyCopy, stopPosition } from '../../lib/mobility';
+import TripBottomSheet from '../../components/TripBottomSheet';
+import BottomNav from '../../components/BottomNav';
+import EmployeeMapBalance from '../../components/EmployeeMapBalance';
+import EmployeeMapExtras from '../../components/EmployeeMapExtras';
+import PresentationMobilityView from '../../components/PresentationMobilityView';
+import DriverDemoMap from '../driver/DriverDemoMap';
 
 export default function TrackVan() {
   const navigate = useNavigate();
-  const { activeTrip, hasActiveTrip } = useTrip();
+  const { profile } = useAuth();
+  const selectedRoute = selectedEmployeeRoute(profile?.id);
+  const { todayRides, journeyStatuses } = useTrip();
+  const ride = todayRides.find((item) => item.expectedToday) || todayRides[0];
+  const route = ride?.route;
+  const statusRow = journeyStatuses.find((item) => item.journey?.route_id === ride?.route_id);
+  const journey = statusRow?.journey;
+  const [stops, setStops] = useState([]);
+  const [arrivals, setArrivals] = useState([]);
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [sheetLevel, setSheetLevel] = useState('standard');
 
-  if (!hasActiveTrip) {
-    return <Navigate to="/employee/onboarding/route" replace />;
-  }
+  useEffect(() => {
+    if (!route?.id) return;
+    let alive = true;
+    Promise.all([fetchRouteStops(route.id), fetchJourneyStopArrivals(journey?.id)])
+      .then(([nextStops, nextArrivals]) => {
+        if (alive) { setStops(nextStops); setArrivals(nextArrivals); setError(null); setLoading(false); }
+      })
+      .catch((nextError) => { if (alive) { setError(nextError); setLoading(false); } });
+    return () => { alive = false; };
+  }, [route?.id, journey?.id, journey?.position_updated_at]);
 
-  const route = activeTrip.route;
-  const driver = route.driver;
+  const mapStops = useMemo(() => stops.map((stop) => ({
+    ...stop, position: stopPosition(stop), destination: stop.kind === 'destination',
+  })).filter((stop) => stop.position), [stops]);
+  const arrivedIds = new Set(arrivals.map((arrival) => arrival.route_stop_id));
+  const nextStop = mapStops.find((stop) => !arrivedIds.has(stop.id)) || mapStops.at(-1);
+  const boardingStop = mapStops.find((stop) => stop.id === statusRow?.boarding_stop_id)
+    || mapStops.find((stop) => stop.kind === 'boarding');
+  const copy = passengerJourneyCopy(journey, ride?.cancelledToday ? { status: 'cancelled' } : statusRow);
+  const eta = journey?.eta_minutes ?? (journey ? null : route?.eta_minutes);
 
-  return (
-    <div
-      className="page-transition"
-      style={{ height: 'calc(100vh - 180px)', display: 'flex', flexDirection: 'column' }}
-    >
-      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', paddingBottom: '1rem' }}>
-        <button
-          type="button"
-          onClick={() => navigate('/employee')}
-          style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
-        >
-          <ArrowLeft size={24} color="var(--text-primary)" />
-        </button>
-        <h2 style={{ fontSize: '1.2rem', margin: 0 }}>Rastreamento</h2>
-      </div>
+  if (selectedRoute || !ride || !route?.id) return <PresentationMobilityView role="employee" />;
+  if (loading) return <div className="card" style={{ margin: '1rem' }}>Carregando mapa da viagem...</div>;
+  if (error || !mapStops.length) return <PresentationMobilityView role="employee" />;
 
-      <div
-        style={{
-          flex: 1,
-          backgroundColor: 'var(--border)',
-          borderRadius: 'var(--radius-lg)',
-          position: 'relative',
-          overflow: 'hidden',
-          border: '1px solid var(--border)',
-        }}
+  return <div className="page-transition mobility-page employee-mobility-page">
+    <div className="mobility-stage">
+      <section className="mobility-map" aria-label="Mapa da viagem">
+        <DriverDemoMap origin={mapStops[0].position} position={journeyPosition(journey)} stops={mapStops} selected={nextStop?.id} complete={journey?.status === 'completed'} sheetLevel={sheetLevel} />
+      </section>
+      <div className="mobility-map-top"><button className="mobility-back" type="button" aria-label="Abrir detalhes da viagem" onClick={() => setSheetLevel('expanded')}><Menu size={21} /></button><span className="mobility-route-pill">{route.name}</span></div>
+      <EmployeeMapBalance />
+      <TripBottomSheet
+        eyebrow={copy.label.toUpperCase()}
+        title={eta != null && journey?.status === 'in_progress' ? `${eta} min até a próxima parada` : copy.label}
+        subtitle={copy.detail}
+        status={journey?.delay_minutes > 0 ? `Atraso de ${journey.delay_minutes} min` : journey?.status === 'in_progress' ? 'Em rota' : null}
+        level={sheetLevel}
+        onLevelChange={setSheetLevel}
+        action={nextStop && <div className="mobility-next-stop"><MapPin size={18} /><span><small>{journey?.status === 'completed' ? 'Destino' : 'Próxima parada'}</small><strong>{nextStop.name}</strong></span></div>}
+        footer={<BottomNav role="employee" embedded />}
       >
-        <MapContainer
-          center={BOARDING_CENTER}
-          zoom={14}
-          zoomControl={false}
-          style={{ height: '100%', width: '100%', zIndex: 1 }}
-        >
-          <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          />
-          <Marker position={VAN_PLACEHOLDER} icon={VanIcon} />
-          <Marker position={BOARDING_CENTER} icon={PointIcon} />
-        </MapContainer>
-
-        <div
-          style={{
-            position: 'absolute',
-            top: '1rem',
-            left: '1rem',
-            right: '1rem',
-            backgroundColor: 'var(--bg-secondary)',
-            padding: '0.75rem',
-            borderRadius: 'var(--radius-md)',
-            boxShadow: 'var(--shadow-md)',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            zIndex: 10,
-          }}
-        >
-          <div>
-            <h3 style={{ margin: 0, fontSize: '1.1rem' }}>{route.eta_minutes} MINUTOS</h3>
-            <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-              Chegada estimada: {route.estimated_arrival}
-            </p>
-          </div>
-          <Navigation size={24} color="var(--primary)" />
-        </div>
-      </div>
-
-      <div
-        style={{
-          marginTop: '0.75rem',
-          padding: '0.65rem 0.85rem',
-          borderRadius: 'var(--radius-md)',
-          background: 'var(--primary-light)',
-          color: 'var(--primary-hover)',
-          display: 'flex',
-          gap: '0.5rem',
-          alignItems: 'flex-start',
-          fontSize: '0.8rem',
-        }}
-      >
-        <Info size={16} style={{ flexShrink: 0, marginTop: 2 }} />
-        <span>
-          Localização ao vivo do motorista virá em uma próxima versão. O mapa mostra o ponto de embarque e uma
-          posição ilustrativa da van.
-        </span>
-      </div>
-
-      <div className="card" style={{ marginTop: '0.75rem' }}>
-        <h3 style={{ marginBottom: '0.35rem' }}>{driver?.name || 'Motorista a definir'}</h3>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
-          <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-secondary)', display: 'flex', gap: '0.35rem', alignItems: 'center' }}>
-            <Car size={15} /> {driver?.vehicle?.label || 'Van da operação'}
-          </p>
-          {driver && (
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.25rem',
-                backgroundColor: 'var(--bg-primary)',
-                padding: '0.25rem 0.5rem',
-                borderRadius: 'var(--radius-md)',
-              }}
-            >
-              <Star size={14} color="var(--warning)" fill="var(--warning)" />
-              <span style={{ fontSize: '0.85rem', fontWeight: 'bold' }}>{driver.rating.average.toFixed(1)}</span>
-            </div>
-          )}
-        </div>
-        <p style={{ margin: '0 0 1rem', fontSize: '0.85rem', color: 'var(--text-secondary)', display: 'flex', gap: '0.35rem' }}>
-          <MapPin size={15} color="var(--secondary)" /> {route.boarding_stop} · {route.name}
-        </p>
-        <button
-          className="btn btn-outline"
-          type="button"
-          style={{ width: '100%', padding: '0.6rem' }}
-          onClick={() => navigate('/employee/cancel')}
-        >
-          Cancelar viagem
-        </button>
-      </div>
+        <div className="mobility-detail-row"><span>Embarque</span><strong>{boardingStop?.name || route.boarding_stop}</strong></div>
+        <div className="mobility-detail-row"><span>Destino</span><strong>{mapStops.at(-1)?.name || route.destination_label}</strong></div>
+        <div className="mobility-detail-row"><span>Motorista</span><strong>{route.driver?.name || 'A definir'}</strong></div>
+        <div className="mobility-detail-row"><span>Veículo</span><strong>{journey?.vehicle_model || route.driver?.vehicle?.label || 'Van Comfy'}{journey?.vehicle_plate ? ` · ${journey.vehicle_plate}` : ''}</strong></div>
+        <div className="mobility-detail-row"><span>Situação do embarque</span><strong>{statusRow?.status === 'boarded' ? 'Confirmado' : statusRow?.status === 'absent' ? 'Ausência registrada' : ride.cancelledToday ? 'Cancelado' : 'Aguardando'}</strong></div>
+        {!ride.cancelledToday && journey?.status !== 'completed' && journey?.status !== 'cancelled' && <button className="btn btn-outline" type="button" onClick={() => navigate('/employee/cancel')}>Cancelar viagem de hoje</button>}
+        <EmployeeMapExtras canReview={Boolean(route.driver)} />
+        {journey?.position_updated_at && <p className="mobility-updated">Posição atualizada às {new Date(journey.position_updated_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</p>}
+      </TripBottomSheet>
     </div>
-  );
+  </div>;
 }
