@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, BusFront, KeyRound } from 'lucide-react';
+import { ArrowLeft, KeyRound } from 'lucide-react';
 import { useAuth } from '../auth-context';
 import { supabase } from '../lib/supabase';
+import ComfyBrand from '../components/ComfyBrand';
 
 function readStoredRole(searchRole) {
   if (searchRole === 'employee' || searchRole === 'driver') return searchRole;
@@ -206,7 +207,7 @@ export default function ResetPassword() {
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'center',
-        backgroundColor: 'var(--primary-light)',
+        background: 'linear-gradient(180deg, var(--brand-primary-soft), var(--surface-page))',
       }}
     >
       <div style={{ width: '100%', maxWidth: '380px', margin: '0 auto' }}>
@@ -226,12 +227,7 @@ export default function ResetPassword() {
         </Link>
 
         <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-          <BusFront
-            size={48}
-            strokeWidth={1.5}
-            color="var(--primary)"
-            style={{ marginBottom: '0.75rem' }}
-          />
+          <div style={{ marginBottom: '1rem' }}><ComfyBrand compact /></div>
           <div
             style={{
               display: 'inline-flex',
@@ -254,7 +250,7 @@ export default function ResetPassword() {
               fontSize: '0.95rem',
             }}
           >
-            Escolha uma nova senha para a sua conta MoveCorp.
+            Escolha uma nova senha para a sua conta Comfy.
           </p>
         </div>
 
@@ -265,9 +261,9 @@ export default function ResetPassword() {
         {!checking && !ready && !done && (
           <div
             style={{
-              backgroundColor: '#fffbeb',
-              color: '#92400e',
-              border: '1px solid #fde68a',
+              backgroundColor: 'var(--warning-light)',
+              color: 'var(--warning)',
+              border: '1px solid #f0d19a',
               borderRadius: 'var(--radius-md)',
               padding: '1rem',
               fontSize: '0.9rem',
@@ -323,9 +319,9 @@ export default function ResetPassword() {
             {error && (
               <div
                 style={{
-                  backgroundColor: '#fef2f2',
-                  color: '#b91c1c',
-                  border: '1px solid #fecaca',
+                  backgroundColor: 'var(--danger-light)',
+                  color: 'var(--danger)',
+                  border: '1px solid #f4c7c3',
                   borderRadius: 'var(--radius-md)',
                   padding: '0.75rem 1rem',
                   fontSize: '0.85rem',
@@ -353,9 +349,9 @@ export default function ResetPassword() {
         {done && (
           <div
             style={{
-              backgroundColor: '#f0fdf4',
-              color: '#166534',
-              border: '1px solid #bbf7d0',
+              backgroundColor: 'var(--success-light)',
+              color: 'var(--success)',
+              border: '1px solid #b9dfc4',
               borderRadius: 'var(--radius-md)',
               padding: '1rem',
               fontSize: '0.9rem',

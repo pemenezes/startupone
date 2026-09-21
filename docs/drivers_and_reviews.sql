@@ -1,4 +1,4 @@
--- MoveCorp: drivers registry + reviews (run in Supabase SQL Editor)
+-- Comfy: drivers registry + reviews (run in Supabase SQL Editor)
 -- Lets employees rate real drivers registered on the platform.
 
 -- 1) Extended driver profile (1:1 with profiles where role = driver)

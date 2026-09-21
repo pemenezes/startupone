@@ -9,16 +9,16 @@ const ROLE_LABELS = {
 };
 
 async function fetchProfile(userId) {
-  const { data, error } = await supabase
-    .from('profiles')
-    .select(
-      'id, email, full_name, role, company_id, region_id, home_address, work_address, credit_balance, credit_last_top_up'
-    )
-    .eq('id', userId)
-    .maybeSingle();
-
-  if (error) throw error;
-  return data;
+  const baseFields = 'id, email, full_name, role, company_id, region_id, home_address, work_address, credit_balance, credit_last_top_up';
+  const query = (fields) => supabase.from('profiles').select(fields).eq('id', userId).maybeSingle();
+  const { data, error } = await query(`${baseFields}, no_show_count`);
+  if (!error) return data;
+  if (error.code === '42703' || error.code === 'PGRST204') {
+    const fallback = await query(baseFields);
+    if (fallback.error) throw fallback.error;
+    return fallback.data ? { ...fallback.data, no_show_count: 0 } : null;
+  }
+  throw error;
 }
 
 export function AuthProvider({ children }) {

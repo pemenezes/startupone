@@ -93,7 +93,7 @@ export default function ReviewDriver() {
   if (submitted) {
     return (
       <div className="page-transition" style={{ textAlign: 'center', marginTop: '5rem' }}>
-        <h2 style={{ color: 'var(--secondary)' }}>Obrigado!</h2>
+        <h2 style={{ color: 'var(--success)' }}>Obrigado!</h2>
         <p>Sua avaliação de {selectedDriver?.name || 'motorista'} foi registrada na plataforma.</p>
       </div>
     );
@@ -118,9 +118,9 @@ export default function ReviewDriver() {
             display: 'flex',
             gap: '0.75rem',
             alignItems: 'flex-start',
-            background: '#fef2f2',
-            borderColor: '#fecaca',
-            color: '#991b1b',
+            background: 'var(--danger-light)',
+            borderColor: '#f4c7c3',
+            color: 'var(--danger)',
           }}
         >
           <AlertCircle size={22} />
@@ -155,7 +155,7 @@ export default function ReviewDriver() {
     <div className="page-transition">
       <h1 style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>Avaliar viagem</h1>
       <p style={{ color: 'var(--text-secondary)', marginBottom: '1.25rem' }}>
-        Avalie o motorista e o veículo cadastrados na MoveCorp
+        Avalie o motorista e o veículo cadastrados na Comfy
         {route?.name ? (
           <>
             {' '}
@@ -261,9 +261,9 @@ export default function ReviewDriver() {
         {submitError && (
           <div
             style={{
-              background: '#fef2f2',
-              color: '#b91c1c',
-              border: '1px solid #fecaca',
+              background: 'var(--danger-light)',
+              color: 'var(--danger)',
+              border: '1px solid #f4c7c3',
               borderRadius: 'var(--radius-md)',
               padding: '0.75rem 1rem',
               fontSize: '0.85rem',

@@ -12,7 +12,7 @@ export default function NotificationsPanel({ notifications, onMarkAsRead, onClos
       case 'warning':
         return <ShieldAlert size={18} color="var(--warning)" />;
       case 'success':
-        return <CheckCircle2 size={18} color="var(--secondary)" />;
+        return <CheckCircle2 size={18} color="var(--success)" />;
       case 'info':
       default:
         return <Info size={18} color="var(--primary)" />;
@@ -23,7 +23,7 @@ export default function NotificationsPanel({ notifications, onMarkAsRead, onClos
     switch (type) {
       case 'danger': return 'var(--danger)';
       case 'warning': return 'var(--warning)';
-      case 'success': return 'var(--secondary)';
+      case 'success': return 'var(--success)';
       case 'info':
       default:
         return 'var(--primary)';

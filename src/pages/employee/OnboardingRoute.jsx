@@ -5,21 +5,28 @@ import { useAuth } from '../../auth-context';
 import { useTrip } from '../../TripContext';
 import { fetchRoutesForCompany } from '../../lib/routes';
 import { WEEKDAY_OPTIONS, directionLabel } from '../../lib/schedule';
+import { EMPLOYEE_ROUTE_OPTIONS, readEmployeeRoutePreferences, saveEmployeeRoutePreference } from '../../lib/employeeRoutePreferences';
+import { updatePresentationJourney } from '../../lib/presentationMobility';
 
-export default function OnboardingRoute() {
+export default function OnboardingRoute({ mode = 'onboarding' }) {
   const navigate = useNavigate();
   const { profile } = useAuth();
   const { selectRoute, subscriptions } = useTrip();
+  const initialChoice = readEmployeeRoutePreferences(profile?.id);
   const [routes, setRoutes] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [direction, setDirection] = useState('outbound');
-  const [weekdays, setWeekdays] = useState([1, 2, 3, 4, 5]);
+  const [direction, setDirection] = useState(initialChoice.activeDirection || 'outbound');
+  const [weekdays, setWeekdays] = useState(initialChoice[initialChoice.activeDirection]?.weekdays || [1, 2, 3, 4, 5]);
   const [savingId, setSavingId] = useState('');
   const [error, setError] = useState('');
   const [info, setInfo] = useState('');
 
   useEffect(() => {
     let cancelled = false;
+    if (mode === 'settings' && (!profile?.company_id || !profile?.region_id)) {
+      Promise.resolve().then(() => { if (!cancelled) setLoading(false); });
+      return () => { cancelled = true; };
+    }
     if (!profile?.company_id) {
       navigate('/employee/onboarding/company', { replace: true });
       return undefined;
@@ -43,12 +50,19 @@ export default function OnboardingRoute() {
     return () => {
       cancelled = true;
     };
-  }, [profile?.company_id, profile?.region_id, navigate]);
+  }, [profile?.company_id, profile?.region_id, navigate, mode]);
 
   const filtered = useMemo(
-    () => routes.filter((r) => (r.direction || 'outbound') === direction),
+    () => [...EMPLOYEE_ROUTE_OPTIONS, ...routes.filter((route) => !EMPLOYEE_ROUTE_OPTIONS.some((option) => option.name === route.name))]
+      .filter((r) => (r.direction || 'outbound') === direction),
     [routes, direction]
   );
+  const currentChoice = readEmployeeRoutePreferences(profile?.id);
+
+  const chooseDirection = (value) => {
+    setDirection(value);
+    setWeekdays(currentChoice[value]?.weekdays || [1, 2, 3, 4, 5]);
+  };
 
   const toggleDay = (day) => {
     setWeekdays((prev) =>
@@ -61,9 +75,13 @@ export default function OnboardingRoute() {
     setError('');
     setInfo('');
     try {
-      await selectRoute(routeId, weekdays);
+      if (!EMPLOYEE_ROUTE_OPTIONS.some((route) => route.id === routeId)) {
+        await selectRoute(routeId, weekdays);
+      }
+      if (currentChoice[direction]?.routeId !== routeId) updatePresentationJourney({ type: 'restart' });
+      saveEmployeeRoutePreference(profile?.id, direction, routeId, weekdays);
       setInfo(
-        `${directionLabel(direction)} salva. Você pode escolher a outra direção também, ou ir para o início.`
+        `${directionLabel(direction)} salva. Você pode escolher a outra direção ou voltar ao mapa.`
       );
     } catch (err) {
       setError(err.message || 'Não foi possível salvar a rota.');
@@ -83,7 +101,7 @@ export default function OnboardingRoute() {
   return (
     <div className="page-transition">
       <div style={{ marginBottom: '1.25rem' }}>
-        <h1 style={{ fontSize: '1.4rem', margin: '0 0 0.35rem' }}>Escolher rota</h1>
+        <h1 style={{ fontSize: '1.4rem', margin: '0 0 0.35rem' }}>{mode === 'settings' ? 'Minha rota fixa' : 'Escolher rota'}</h1>
         <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '0.95rem' }}>
           Defina a rota fixa e os dias em que você vai presencialmente. Isso vale toda semana até você
           alterar.
@@ -94,7 +112,7 @@ export default function OnboardingRoute() {
         <button
           type="button"
           className={`btn ${direction === 'outbound' ? 'btn-primary' : 'btn-outline'}`}
-          onClick={() => setDirection('outbound')}
+          onClick={() => chooseDirection('outbound')}
           style={{ flex: 1 }}
         >
           Ida
@@ -102,7 +120,7 @@ export default function OnboardingRoute() {
         <button
           type="button"
           className={`btn ${direction === 'return' ? 'btn-primary' : 'btn-outline'}`}
-          onClick={() => setDirection('return')}
+          onClick={() => chooseDirection('return')}
           style={{ flex: 1 }}
         >
           Volta
@@ -134,8 +152,8 @@ export default function OnboardingRoute() {
       {error && (
         <div
           style={{
-            background: '#fef2f2',
-            color: '#b91c1c',
+            background: 'var(--danger-light)',
+            color: 'var(--danger)',
             padding: '0.75rem',
             borderRadius: 'var(--radius-md)',
             fontSize: '0.85rem',
@@ -148,8 +166,8 @@ export default function OnboardingRoute() {
       {info && (
         <div
           style={{
-            background: '#f0fdf4',
-            color: '#166534',
+            background: 'var(--success-light)',
+            color: 'var(--success)',
             padding: '0.75rem',
             borderRadius: 'var(--radius-md)',
             fontSize: '0.85rem',
@@ -179,7 +197,7 @@ export default function OnboardingRoute() {
             <article key={route.id} className="card" style={{ display: 'grid', gap: '0.65rem' }}>
               <div>
                 <small style={{ color: 'var(--text-secondary)' }}>
-                  {directionLabel(route.direction)} · {route.id.slice(0, 8)}
+                  {directionLabel(route.direction)} · {route.code || route.id.slice(0, 8)}
                 </small>
                 <h3 style={{ margin: '0.15rem 0' }}>{route.name}</h3>
               </div>
@@ -209,7 +227,7 @@ export default function OnboardingRoute() {
                 disabled={Boolean(savingId) || weekdays.length === 0}
                 onClick={() => handleSelect(route.id)}
               >
-                {savingId === route.id ? 'Salvando...' : `Confirmar ${directionLabel(direction).toLowerCase()}`}
+                {savingId === route.id ? 'Salvando...' : currentChoice[direction]?.routeId === route.id ? 'Selecionada · alterar dias' : `Confirmar ${directionLabel(direction).toLowerCase()}`}
               </button>
             </article>
           ))}
@@ -221,15 +239,15 @@ export default function OnboardingRoute() {
         type="button"
         style={{ marginTop: '1rem' }}
         onClick={() => navigate('/employee', { replace: true })}
-        disabled={!subscriptions?.length}
+        disabled={!subscriptions?.length && !currentChoice.outbound && !currentChoice.return}
       >
-        Ir para o início
+        Ver mapa
       </button>
       <button
         className="btn btn-outline"
         type="button"
         style={{ marginTop: '0.5rem' }}
-        onClick={() => navigate('/employee/onboarding/region')}
+        onClick={() => navigate(mode === 'settings' ? '/employee/profile' : '/employee/onboarding/region')}
       >
         Voltar
       </button>

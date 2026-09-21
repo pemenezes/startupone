@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { BusFront, Zap } from 'lucide-react';
+import ComfyBrand from '../components/ComfyBrand';
 
 export default function Splash() {
   const navigate = useNavigate();
@@ -19,20 +19,14 @@ export default function Splash() {
       flexDirection: 'column', 
       alignItems: 'center', 
       justifyContent: 'center',
-      backgroundColor: 'var(--primary)',
+      background: 'var(--brand-gradient)',
       color: 'white'
     }}>
       <div className="page-transition" style={{ textAlign: 'center' }}>
-        <div style={{ position: 'relative', display: 'inline-block', marginBottom: '1rem' }}>
-          <BusFront size={80} strokeWidth={1.5} color="var(--bg-secondary)" />
-          <Zap 
-            size={32} 
-            color="var(--warning)" 
-            style={{ position: 'absolute', bottom: -5, right: -10, fill: 'var(--warning)' }} 
-          />
-        </div>
-        <h1 style={{ fontSize: '2.5rem', margin: 0, color: 'white', letterSpacing: '-0.05em' }}>MoveCorp</h1>
-        <p style={{ marginTop: '0.5rem', fontSize: '1.1rem', color: 'var(--warning)',fontWeight: 500,}}>Mobilidade Inteligente</p>
+        <ComfyBrand inverse />
+        <p style={{ marginTop: '1rem', fontSize: '1.1rem', color: 'var(--brand-highlight)', fontWeight: 500 }}>
+          Mobilidade inteligente
+        </p>
       </div>
     </div>
   );

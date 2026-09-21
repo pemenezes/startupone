@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate, useParams, Link, Navigate } from 'react-router-dom';
-import { ArrowLeft, BusFront, Building2, User, Car } from 'lucide-react';
+import { ArrowLeft, Building2, User, Car } from 'lucide-react';
 import { useAuth, ROLE_BY_LOGIN_PATH, HOME_BY_ROLE } from '../auth-context';
+import ComfyBrand from '../components/ComfyBrand';
 
 const ROLE_UI = {
   employee: {
@@ -14,7 +15,7 @@ const ROLE_UI = {
     title: 'Entrar como Motorista',
     icon: Car,
     accent: 'var(--secondary)',
-    iconBg: '#f0fdf4',
+    iconBg: 'var(--secondary-light)',
   },
   company: {
     title: 'Entrar como Administrador',
@@ -68,7 +69,7 @@ export default function LoginForm() {
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'center',
-        backgroundColor: 'var(--primary-light)',
+        background: 'linear-gradient(180deg, var(--brand-primary-soft), var(--surface-page))',
       }}
     >
       <div style={{ width: '100%', maxWidth: '380px', margin: '0 auto' }}>
@@ -88,12 +89,7 @@ export default function LoginForm() {
         </Link>
 
         <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-          <BusFront
-            size={48}
-            strokeWidth={1.5}
-            color="var(--primary)"
-            style={{ marginBottom: '0.75rem' }}
-          />
+          <div style={{ marginBottom: '1rem' }}><ComfyBrand compact /></div>
           <div
             style={{
               display: 'inline-flex',
@@ -171,9 +167,9 @@ export default function LoginForm() {
           {error && (
             <div
               style={{
-                backgroundColor: '#fef2f2',
-                color: '#b91c1c',
-                border: '1px solid #fecaca',
+                backgroundColor: 'var(--danger-light)',
+                color: 'var(--danger)',
+                border: '1px solid #f4c7c3',
                 borderRadius: 'var(--radius-md)',
                 padding: '0.75rem 1rem',
                 fontSize: '0.85rem',

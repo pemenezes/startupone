@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate, useParams, Link, Navigate } from 'react-router-dom';
-import { ArrowLeft, BusFront, User, Car } from 'lucide-react';
+import { ArrowLeft, User, Car } from 'lucide-react';
 import { useAuth, ROLE_BY_REGISTER_PATH, HOME_BY_ROLE } from '../auth-context';
+import ComfyBrand from '../components/ComfyBrand';
 
 const ROLE_UI = {
   employee: {
@@ -14,7 +15,7 @@ const ROLE_UI = {
     title: 'Cadastro de Motorista',
     icon: Car,
     accent: 'var(--secondary)',
-    iconBg: '#f0fdf4',
+    iconBg: 'var(--secondary-light)',
   },
 };
 
@@ -93,7 +94,7 @@ export default function RegisterForm() {
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'center',
-        backgroundColor: 'var(--primary-light)',
+        background: 'linear-gradient(180deg, var(--brand-primary-soft), var(--surface-page))',
       }}
     >
       <div style={{ width: '100%', maxWidth: '380px', margin: '0 auto' }}>
@@ -113,12 +114,7 @@ export default function RegisterForm() {
         </Link>
 
         <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-          <BusFront
-            size={48}
-            strokeWidth={1.5}
-            color="var(--primary)"
-            style={{ marginBottom: '0.75rem' }}
-          />
+          <div style={{ marginBottom: '1rem' }}><ComfyBrand compact /></div>
           <div
             style={{
               display: 'inline-flex',
@@ -197,9 +193,9 @@ export default function RegisterForm() {
           {error && (
             <div
               style={{
-                backgroundColor: '#fef2f2',
-                color: '#b91c1c',
-                border: '1px solid #fecaca',
+                backgroundColor: 'var(--danger-light)',
+                color: 'var(--danger)',
+                border: '1px solid #f4c7c3',
                 borderRadius: 'var(--radius-md)',
                 padding: '0.75rem 1rem',
                 fontSize: '0.85rem',
@@ -212,16 +208,16 @@ export default function RegisterForm() {
           {success && (
             <div
               style={{
-                backgroundColor: '#f0fdf4',
-                color: '#15803d',
-                border: '1px solid #bbf7d0',
+                backgroundColor: 'var(--success-light)',
+                color: 'var(--success)',
+                border: '1px solid #b9dfc4',
                 borderRadius: 'var(--radius-md)',
                 padding: '0.75rem 1rem',
                 fontSize: '0.85rem',
               }}
             >
               {success}{' '}
-              <Link to={`/login/${roleParam}`} style={{ color: '#15803d', fontWeight: 700 }}>
+              <Link to={`/login/${roleParam}`} style={{ color: 'var(--success)', fontWeight: 700 }}>
                 Ir para o login
               </Link>
             </div>

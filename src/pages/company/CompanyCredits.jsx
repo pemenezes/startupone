@@ -1,112 +1,45 @@
-import React, { useState } from 'react';
-import { DollarSign, Wallet, ArrowUpRight, ArrowDownRight, Users, Download } from 'lucide-react';
-import { useAppContext } from '../../app-context';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Download, Wallet, Users, ReceiptText, Plus, Minus } from 'lucide-react';
+import { useCompanyData } from './company-context';
 
-export default function CompanyCredits() {
-  const { employees, distributeCredits } = useAppContext();
-  const [depositAmount, setDepositAmount] = useState(350);
-
-  const handleDeposit = (e) => {
-    e.preventDefault();
-    distributeCredits(depositAmount);
-    alert(`Distribuição concluída: R$ ${depositAmount.toFixed(2).replace('.', ',')} foram adicionados para ${employees.length} colaborador(es).`);
-  };
-
-  return (
-    <div className="page-transition">
-      <div className="company-page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-        <div>
-          <h1 style={{ fontSize: '2rem', margin: 0 }}>Gestão de Créditos</h1>
-          <p style={{ color: 'var(--text-secondary)', margin: 0 }}>Controle de orçamento do benefício de mobilidade intermodal.</p>
-        </div>
-        <button className="btn btn-outline" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', width: 'auto' }}>
-          <Download size={18} /> Exportar Relatório TXT
-        </button>
-      </div>
-
-      <div className="company-credit-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.5rem', marginBottom: '2.5rem' }}>
-        <div className="card" style={{ backgroundColor: 'var(--primary)', color: 'white', border: 'none', backgroundImage: 'linear-gradient(135deg, var(--primary) 0%, #1e3a8a 100%)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-            <span style={{ fontSize: '0.9rem', opacity: 0.9 }}>Fundos Depositados (Mês)</span>
-            <Wallet size={20} opacity={0.8} />
-          </div>
-          <h2 style={{ fontSize: '2.5rem', margin: 0 }}>R$ 436.800</h2>
-          <p style={{ fontSize: '0.85rem', margin: 0, opacity: 0.8 }}>Demonstração com {employees.length} colaborador(es) ativo(s)</p>
-        </div>
-        
-        <div className="card">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-            <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Uso no Fretado (MoveCorp)</span>
-            <ArrowUpRight size={20} color="var(--secondary)" />
-          </div>
-          <h2 style={{ fontSize: '2.5rem', margin: 0 }}>65%</h2>
-          <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', margin: 0 }}>Dos créditos retornam na Plataforma.</p>
-        </div>
-
-        <div className="card">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-            <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Saques de VT (Vale Transporte)</span>
-            <ArrowDownRight size={20} color="var(--warning)" />
-          </div>
-          <h2 style={{ fontSize: '2.5rem', margin: 0 }}>35%</h2>
-          <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', margin: 0 }}>Restante convertido por funcionários.</p>
-        </div>
-      </div>
-
-      <div className="company-content-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
-        <div className="card">
-          <h3 style={{ marginBottom: '1rem', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-            <DollarSign size={20} color="var(--primary)" /> Nova Distruibuição em Massa
-          </h3>
-          <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>
-            Distribua créditos corporativos de mobilidade para os colaboradores carregados nesta demonstração.
-          </p>
-          <form onSubmit={handleDeposit} style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            <div style={{ position: 'relative', flex: 1 }}>
-              <span style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)', fontWeight: 'bold' }}>R$</span>
-              <input 
-                type="number" 
-                value={depositAmount}
-                onChange={(e) => setDepositAmount(Number(e.target.value))}
-                style={{ width: '100%', padding: '1rem', paddingLeft: '3rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)', fontSize: '1.2rem', fontWeight: 'bold', boxSizing: 'border-box' }}
-              />
-            </div>
-            <button className="btn btn-primary" type="submit" style={{ width: 'auto', padding: '1rem 2rem' }}>
-              Processar Lote
-            </button>
-          </form>
-        </div>
-
-        <div className="card" style={{ padding: 0 }}>
-          <div style={{ padding: '1.5rem', borderBottom: '1px solid var(--border)' }}>
-            <h3 style={{ margin: 0, display: 'flex', gap: '0.5rem', alignItems: 'center' }}><Users size={20} /> Extrato Recente (Colaboradores)</h3>
-          </div>
-          <div style={{ padding: '1rem 1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--bg-primary)', paddingBottom: '0.5rem' }}>
-               <div>
-                  <p style={{ margin: 0, fontWeight: 'bold' }}>Ana Silva</p>
-                  <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Fretamento Diário • 31/03/2026</p>
-               </div>
-               <span style={{ color: 'var(--danger)', fontWeight: 'bold' }}>- R$ 15,00</span>
-             </div>
-             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--bg-primary)', paddingBottom: '0.5rem' }}>
-               <div>
-                  <p style={{ margin: 0, fontWeight: 'bold' }}>Marcos Antônio</p>
-                  <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Conversão VT SPTrans • 30/03/2026</p>
-               </div>
-               <span style={{ color: 'var(--danger)', fontWeight: 'bold' }}>- R$ 50,00</span>
-             </div>
-             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-               <div>
-                  <p style={{ margin: 0, fontWeight: 'bold' }}>Recarga Empresa Lote 14</p>
-                  <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Para todos elegíveis • 01/03/2026</p>
-               </div>
-               <span style={{ color: 'var(--secondary)', fontWeight: 'bold' }}>+ R$ 350,00</span>
-             </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+function money(value) {
+  return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
 
+function exportTransactions(rows, employees) {
+  const escape = (value) => `"${String(value ?? '').replaceAll('"', '""')}"`;
+  const data = [['Data', 'Funcionário', 'Tipo', 'Valor'], ...rows.map((entry) => [entry.date, employees.find((employee) => employee.id === entry.employeeId)?.name || entry.employeeId, entry.title, entry.amount])];
+  const csv = '\ufeff' + data.map((row) => row.map(escape).join(';')).join('\r\n');
+  const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = 'comfy-extrato-corporativo.csv';
+  link.click();
+  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function DistributionPreview({ amount, employees, onClose }) {
+  const dialog = useRef(null);
+  useEffect(() => { dialog.current.showModal(); }, []);
+  return <dialog ref={dialog} className="admin-dialog" aria-labelledby="distribution-title" onCancel={onClose}><span className="admin-eyebrow">Prévia de distribuição</span><h2 id="distribution-title">Revise antes de processar</h2><div className="admin-detail-grid"><div><span>Colaboradores afetados</span><strong>{employees.length}</strong></div><div><span>Crédito por pessoa</span><strong>{money(amount)}</strong></div><div><span>Valor total</span><strong>{money(amount * employees.length)}</strong></div></div><p className="admin-muted">Esta prévia não movimenta saldo. O processamento real exigirá uma operação segura e auditável no Supabase.</p><button type="button" className="btn btn-primary" onClick={onClose}>Fechar prévia</button></dialog>;
+}
+
+export default function CompanyCredits() {
+  const { company, employees, creditTransactions } = useCompanyData();
+  const [amount, setAmount] = useState(350);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [employeeId, setEmployeeId] = useState('');
+  const [period, setPeriod] = useState('');
+  const [showAll, setShowAll] = useState(false);
+  const balances = employees.reduce((total, employee) => total + employee.balance, 0);
+  const filtered = useMemo(() => creditTransactions.filter((entry) => (!employeeId || entry.employeeId === employeeId) && (!period || entry.date.startsWith(period))), [creditTransactions, employeeId, period]);
+  const visible = showAll ? filtered : filtered.slice(0, 3);
+
+  return <div className="page-transition admin-page"><header className="admin-page-heading"><div><span className="admin-eyebrow">{company.name} · Plano {company.plan}</span><h1>Créditos corporativos</h1><p>Contrato e movimentações do benefício.</p></div><button className="btn btn-outline" type="button" onClick={() => exportTransactions(filtered, employees)}><Download size={17} />Exportar CSV</button></header>
+    <section className="admin-metric-grid admin-credit-metrics" aria-label="Indicadores de créditos"><article className="card admin-metric"><div><span>Valor mensal do contrato</span><Wallet size={21} /></div><strong>{money(Number(company.monthlyContract || 0))}</strong><small>Valor cadastrado no contrato</small></article><article className="card admin-metric"><div><span>Colaboradores cobertos</span><Users size={21} /></div><strong>{employees.length}</strong><small>Mesmo cadastro exibido em Funcionários</small></article><article className="card admin-metric"><div><span>Saldos disponíveis</span><ReceiptText size={21} /></div><strong>{money(balances)}</strong><small>Soma dos saldos dos colaboradores</small></article></section>
+    <div className="admin-credit-grid"><section className="card admin-credit-distribution"><span className="admin-eyebrow">Planejamento</span><h2>Nova distribuição em massa</h2><p>Confira o número de colaboradores e o total antes de qualquer processamento.</p><form onSubmit={(event) => { event.preventDefault(); if (Number.isFinite(amount) && amount > 0) setPreviewOpen(true); }}><label>Crédito por colaborador (R$)<input type="number" min="0.01" step="0.01" value={amount} onChange={(event) => setAmount(Number(event.target.value))} /></label><div className="admin-preview-totals"><span>{employees.length} colaboradores</span><strong>Total: {money(Number.isFinite(amount) ? amount * employees.length : 0)}</strong></div><button className="btn btn-primary" type="submit" disabled={!Number.isFinite(amount) || amount <= 0 || employees.length === 0}>Ver prévia da distribuição</button></form><p className="admin-muted">A prévia não altera saldos.</p></section>
+      <section className="card admin-credit-ledger"><div className="admin-card-heading"><div><span className="admin-eyebrow">Movimentações</span><h2>Extrato recente</h2></div><ReceiptText size={23} /></div><div className="admin-ledger-filters"><label>Período<input type="month" value={period} onChange={(event) => setPeriod(event.target.value)} /></label><label>Colaborador<select value={employeeId} onChange={(event) => setEmployeeId(event.target.value)}><option value="">Todos</option>{employees.map((employee) => <option key={employee.id} value={employee.id}>{employee.name}</option>)}</select></label></div><ul className="admin-ledger-list">{visible.map((entry) => { const employee = employees.find((item) => item.id === entry.employeeId); return <li key={entry.id}><span className={`admin-ledger-icon ${entry.amount < 0 ? 'is-debit' : ''}`}>{entry.amount < 0 ? <Minus size={17} /> : <Plus size={17} />}</span><span><strong>{employee?.name || entry.employeeId}</strong><small>{entry.title} · {entry.date}</small></span><strong className={entry.amount < 0 ? 'is-debit' : ''}>{entry.amount > 0 ? '+' : ''}{money(entry.amount)}</strong></li>; })}{visible.length === 0 && <li className="admin-muted">Nenhuma movimentação para os filtros selecionados.</li>}</ul>{filtered.length > 3 && <button className="admin-text-button" type="button" onClick={() => setShowAll((current) => !current)}>{showAll ? 'Mostrar menos' : `Ver todos (${filtered.length})`}</button>}</section></div>
+    <p className="admin-footnote">O percentual consumido do contrato e a regra de uso mínimo de 80% serão definidos com a fórmula comercial antes de entrar nos cálculos.</p>
+    {previewOpen && <DistributionPreview amount={amount} employees={employees} onClose={() => setPreviewOpen(false)} />}
+  </div>;
+}

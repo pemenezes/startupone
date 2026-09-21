@@ -1,4 +1,4 @@
--- MoveCorp: companies, employee onboarding fields, routes, active trips
+-- Comfy: companies, employee onboarding fields, routes, active trips
 -- Run AFTER docs/drivers_and_reviews.sql (drivers table must exist).
 -- Paste into Supabase → SQL Editor → Run.
 

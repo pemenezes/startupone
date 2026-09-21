@@ -139,9 +139,9 @@ export default function NotificationPreferences() {
       {message && (
         <div
           style={{
-            background: '#f0fdf4',
-            color: '#166534',
-            border: '1px solid #bbf7d0',
+            background: 'var(--success-light)',
+            color: 'var(--success)',
+            border: '1px solid #b9dfc4',
             borderRadius: 'var(--radius-md)',
             padding: '0.75rem 1rem',
             fontSize: '0.85rem',
@@ -153,9 +153,9 @@ export default function NotificationPreferences() {
       {error && (
         <div
           style={{
-            background: '#fef2f2',
-            color: '#b91c1c',
-            border: '1px solid #fecaca',
+            background: 'var(--danger-light)',
+            color: 'var(--danger)',
+            border: '1px solid #f4c7c3',
             borderRadius: 'var(--radius-md)',
             padding: '0.75rem 1rem',
             fontSize: '0.85rem',

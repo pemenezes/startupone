@@ -1,4 +1,4 @@
-# Supabase Auth — MoveCorp
+# Supabase Auth — Comfy
 
 ## 1. Environment variables
 
@@ -254,3 +254,14 @@ statements in `seed_example_users.sql` become redundant (the trigger already
 creates each profile from metadata). They are harmless because the trigger uses
 `on conflict (id) do nothing`, but the role then comes from the user metadata
 (`raw_user_meta_data.role`), so make sure that metadata sets the intended role.
+
+## Driver journey — Package B1
+
+To enable persistent start, resume and completion for the driver's daily journey:
+
+1. Install [`driver_package_a.sql`](./driver_package_a.sql).
+2. Install [`driver_package_b1.sql`](./driver_package_b1.sql).
+3. Validate the flow in a development Supabase project before production.
+
+Package B1 does not persist passenger attendance. See
+[`DRIVER_PACKAGE_B1.md`](./DRIVER_PACKAGE_B1.md) for scope and validation steps.

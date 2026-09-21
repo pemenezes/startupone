@@ -1,17 +1,23 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Users, Map, Calculator, LogOut, CreditCard } from 'lucide-react';
+import { LayoutDashboard, Users, Map, Calculator, LogOut, CreditCard, Menu, X } from 'lucide-react';
 import Dashboard from './Dashboard';
 import Simulator from './Simulator';
 import CompanyEmployees from './CompanyEmployees';
 import CompanyRoutes from './CompanyRoutes';
 import CompanyCredits from './CompanyCredits';
 import { useAuth } from '../../auth-context';
+import ComfyBrand from '../../components/ComfyBrand';
+import CompanyProvider from './CompanyProvider';
+import { useCompanyData } from './company-context';
+import './admin.css';
 
-export default function CompanyLayout() {
+function CompanyShell() {
   const navigate = useNavigate();
   const location = useLocation();
   const { signOut } = useAuth();
+  const { company } = useCompanyData();
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const handleLogout = async () => {
     await signOut();
@@ -27,20 +33,16 @@ export default function CompanyLayout() {
   ];
 
   return (
-    <div className="desktop-container company-shell" style={{ display: 'flex' }}>
+    <div className="desktop-container company-shell">
+      <div className="company-mobile-header"><button type="button" aria-label="Abrir menu do painel" aria-expanded={menuOpen} onClick={() => setMenuOpen(true)}><Menu size={22} /></button><ComfyBrand compact /><strong>Painel</strong></div>
+      {menuOpen && <button className="company-sidebar-backdrop" type="button" aria-label="Fechar menu" onClick={() => setMenuOpen(false)} />}
       {/* Sidebar Desktop */}
-      <aside className="company-sidebar" style={{
-        width: '280px', 
-        backgroundColor: 'var(--bg-dark)', 
-        color: 'white', 
-        height: '100vh', 
-        position: 'fixed',
-        display: 'flex',
-        flexDirection: 'column'
-      }}>
+      <aside className={`company-sidebar ${menuOpen ? 'is-open' : ''}`}>
         <div style={{ padding: '2rem', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
-          <h2 style={{ margin: 0, color: 'white' }}>MoveCorp</h2>
-          <p style={{ margin: 0, opacity: 0.7, fontSize: '0.9rem' }}>Painel Corporativo</p>
+          <button className="company-sidebar-close" type="button" aria-label="Fechar menu" onClick={() => setMenuOpen(false)}><X size={21} /></button>
+          <ComfyBrand inverse compact />
+          <p style={{ margin: 0, color: 'var(--brand-support)', fontSize: '0.9rem' }}>Painel Corporativo</p>
+          <div className="admin-company-identity"><strong>{company.name}</strong><small>Plano {company.plan}</small></div>
         </div>
 
         <nav className="company-navigation" style={{ flex: 1, padding: '1.5rem 1rem' }}>
@@ -51,15 +53,16 @@ export default function CompanyLayout() {
             return (
               <button
                 key={idx}
-                onClick={() => navigate(item.path)}
+                onClick={() => { navigate(item.path); setMenuOpen(false); }}
+                aria-current={finalActive ? 'page' : undefined}
                 style={{
                   width: '100%',
                   display: 'flex',
                   alignItems: 'center',
                   gap: '1rem',
                   padding: '1rem',
-                  backgroundColor: finalActive ? 'var(--primary)' : 'transparent',
-                  color: 'white',
+                  backgroundColor: finalActive ? 'var(--brand-highlight)' : 'transparent',
+                  color: finalActive ? 'var(--brand-ink)' : 'white',
                   border: 'none',
                   borderRadius: 'var(--radius-md)',
                   marginBottom: '0.5rem',
@@ -87,7 +90,7 @@ export default function CompanyLayout() {
       </aside>
 
       {/* Main Content Area */}
-      <main className="company-content" style={{ marginLeft: '280px', padding: '2rem', width: 'calc(100% - 280px)', backgroundColor: 'var(--bg-primary)', minHeight: '100vh' }}>
+      <main className="company-content">
         <Routes>
           <Route path="/" element={<Dashboard />} />
           <Route path="/simulator" element={<Simulator />} />
@@ -99,4 +102,8 @@ export default function CompanyLayout() {
       </main>
     </div>
   );
+}
+
+export default function CompanyLayout() {
+  return <CompanyProvider><CompanyShell /></CompanyProvider>;
 }

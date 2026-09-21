@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { User, Car, BusFront } from 'lucide-react';
+import { User, Car } from 'lucide-react';
+import ComfyBrand from '../components/ComfyBrand';
 
 export default function Register() {
   const navigate = useNavigate();
@@ -13,16 +14,11 @@ export default function Register() {
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'center',
-        backgroundColor: 'var(--primary-light)',
+        background: 'linear-gradient(180deg, var(--brand-primary-soft), var(--surface-page))',
       }}
     >
       <div style={{ marginBottom: '3rem', textAlign: 'center' }}>
-        <BusFront
-          size={64}
-          strokeWidth={1.5}
-          color="var(--primary)"
-          style={{ marginBottom: '1rem' }}
-        />
+        <ComfyBrand />
         <h1 style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>Criar conta</h1>
         <p
           style={{
@@ -32,7 +28,7 @@ export default function Register() {
             fontWeight: 500,
           }}
         >
-          Selecione como você quer se cadastrar no MoveCorp.
+          Selecione como você quer se cadastrar na Comfy.
         </p>
       </div>
 
@@ -56,7 +52,7 @@ export default function Register() {
           className="login-role-card login-role-card--driver"
           onClick={() => navigate('/register/driver')}
         >
-          <div className="login-role-icon" style={{ backgroundColor: '#f0fdf4' }}>
+          <div className="login-role-icon" style={{ backgroundColor: 'var(--secondary-light)' }}>
             <Car size={28} color="var(--secondary)" />
           </div>
           <div>

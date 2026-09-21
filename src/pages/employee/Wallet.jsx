@@ -31,7 +31,7 @@ export default function WalletPage() {
         <ArrowLeft size={18} /> Voltar
       </button>
  
-      <div className="card" style={{ backgroundColor: 'var(--primary)', color: 'white', textAlign: 'center', padding: '2rem 1.5rem', marginBottom: '2rem' }}>
+      <div className="card employee-wallet-hero" style={{ background: 'var(--brand-gradient)', color: 'white', textAlign: 'center', padding: '2rem 1.5rem', marginBottom: '2rem' }}>
         <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem' }}>
           <Wallet size={48} />
         </div>
@@ -75,7 +75,7 @@ export default function WalletPage() {
         ].map((tx, i) => (
           <div key={i} className="card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-              <div style={{ backgroundColor: tx.amount > 0 ? '#f0fdf4' : '#fef2f2', padding: '0.5rem', borderRadius: '50%', color: tx.amount > 0 ? 'var(--secondary)' : 'var(--danger)' }}>
+              <div style={{ backgroundColor: tx.amount > 0 ? 'var(--success-light)' : 'var(--danger-light)', padding: '0.5rem', borderRadius: '50%', color: tx.amount > 0 ? 'var(--success)' : 'var(--danger)' }}>
                 <CreditCard size={18} />
               </div>
               <div>
@@ -83,7 +83,7 @@ export default function WalletPage() {
                 <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{tx.date}</p>
               </div>
             </div>
-            <span style={{ fontWeight: 'bold', color: tx.amount > 0 ? 'var(--secondary)' : 'var(--danger)' }}>
+            <span style={{ fontWeight: 'bold', color: tx.amount > 0 ? 'var(--success)' : 'var(--danger)' }}>
               {tx.amount > 0 ? `+${tx.amount}` : tx.amount} SC
             </span>
           </div>

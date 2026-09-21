@@ -1,4 +1,4 @@
--- MoveCorp V1: recurring routes by region (run in Supabase SQL Editor)
+-- Comfy V1: recurring routes by region (run in Supabase SQL Editor)
 -- Requires: companies, profiles, drivers, routes (from earlier docs).
 
 -- 1) Regions

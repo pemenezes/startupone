@@ -56,7 +56,7 @@ export default function HelpSupport() {
           <HelpCircle size={24} color="var(--primary)" /> Ajuda e suporte
         </h1>
         <p style={{ margin: 0, color: 'var(--text-secondary)' }}>
-          Dúvidas gerais e regras de uso do MoveCorp.
+          Dúvidas gerais e regras de uso da Comfy.
         </p>
       </div>
 

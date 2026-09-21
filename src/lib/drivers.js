@@ -75,7 +75,7 @@ function mapDriverRow(row, profile) {
     id: row.id,
     name: profile?.full_name || 'Motorista',
     email: profile?.email || '',
-    photo: row.photo_url || `https://i.pravatar.cc/150?u=${row.id}`,
+    photo: row.photo_url || null,
     vehicle: {
       model: row.vehicle_model || 'Van',
       plate: row.vehicle_plate || 'A definir',
