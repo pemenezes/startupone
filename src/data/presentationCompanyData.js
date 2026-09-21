@@ -1,3 +1,5 @@
+import { presentationRoutePath } from './presentationRoutePaths.js';
+
 export const adminCompany = Object.freeze({
   name: 'TechCorp S.A.',
   plan: 'Business',
@@ -25,7 +27,7 @@ export const adminRoutes = Object.freeze([
     driver: 'Carlos Roberto', vehicle: 'Van Sprinter · ABC-1D23', plate: 'ABC-1D23',
     capacity: 15, departure: '07:30', arrival: '08:20', etaMinutes: 18,
     progress: 0, nextStop: 'Praça da República',
-    path: [[-23.5431, -46.6427], [-23.5482, -46.6478], [-23.5613, -46.6552], [-23.5695, -46.6601]],
+    path: presentationRoutePath('CF-01'),
     position: [-23.5431, -46.6427],
     passengers: [{ id: 'E101', status: 'expected' }, { id: 'E102', status: 'expected' }, { id: 'E103', status: 'expected' }, { id: 'E104', status: 'expected' }],
     noShows30Days: 2, historyBase: 76,
@@ -35,8 +37,8 @@ export const adminRoutes = Object.freeze([
     driver: 'Marcos Teixeira', vehicle: 'Van DEF-9990', plate: 'DEF-9990',
     capacity: 8, departure: '07:20', arrival: '08:55', etaMinutes: 24,
     progress: 28, nextStop: 'Rua Voluntários da Pátria, 820',
-    path: [[-23.4920, -46.6268], [-23.5072, -46.6312], [-23.5214, -46.6375], [-23.5431, -46.6427]],
-    position: [-23.5072, -46.6312],
+    path: presentationRoutePath('RT-42'),
+    position: [-23.50751, -46.62873],
     passengers: [{ id: 'E105', status: 'boarded' }, { id: 'E106', status: 'boarded' }, { id: 'E107', status: 'absent' }],
     noShows30Days: 7, historyBase: 43,
   },
@@ -45,7 +47,7 @@ export const adminRoutes = Object.freeze([
     driver: 'Fernanda Lopes', vehicle: 'Van GHI-4821', plate: 'GHI-4821',
     capacity: 6, departure: '06:50', arrival: '07:42', etaMinutes: 0,
     progress: 100, nextStop: 'Destino concluído',
-    path: [[-23.5655, -46.6910], [-23.5623, -46.6723], [-23.5558, -46.6515], [-23.5431, -46.6427]],
+    path: presentationRoutePath('RT-08'),
     position: [-23.5431, -46.6427],
     passengers: [{ id: 'E108', status: 'boarded' }, { id: 'E109', status: 'boarded' }, { id: 'E110', status: 'boarded' }],
     noShows30Days: 3, historyBase: 58,
@@ -55,7 +57,7 @@ export const adminRoutes = Object.freeze([
     driver: 'Rafael Almeida', vehicle: 'Van JKL-7702', plate: 'JKL-7702',
     capacity: 6, departure: '18:15', arrival: '19:05', etaMinutes: null,
     progress: 0, nextStop: 'Aguardando início',
-    path: [[-23.5672, -46.7174], [-23.5655, -46.6910], [-23.5623, -46.6723], [-23.5558, -46.6515]],
+    path: presentationRoutePath('RT-21'),
     position: [-23.5672, -46.7174],
     passengers: [{ id: 'E111', status: 'expected' }, { id: 'E112', status: 'expected' }],
     noShows30Days: 1, historyBase: 67,

@@ -4,6 +4,7 @@ import { MapContainer, Marker, Polyline, Popup, useMap } from 'react-leaflet';
 import { LocateFixed, Maximize } from 'lucide-react';
 import ComfyMapLayer from '../../components/ComfyMapLayer';
 import { VanIcon } from '../../components/MapMarkers';
+import { presentationRouteForStops } from '../../data/presentationRoutePaths';
 
 function stopIcon(number, status) {
   return divIcon({
@@ -13,9 +14,12 @@ function stopIcon(number, status) {
   });
 }
 
-function MapControls({ origin, position, stops, sheetLevel }) {
+function MapControls({ origin, position, stops, path, sheetLevel }) {
   const map = useMap();
-  const positions = useMemo(() => stops.map((stop) => stop.position), [stops]);
+  const positions = useMemo(() => [
+    ...(path || []),
+    ...stops.map((stop) => stop.position),
+  ], [path, stops]);
   useEffect(() => {
     const timer = window.setTimeout(() => {
       map.invalidateSize();
@@ -35,17 +39,18 @@ function MapControls({ origin, position, stops, sheetLevel }) {
 
 export default function DriverDemoMap({ origin, position, stops, selected, complete = false, sheetLevel = 'standard' }) {
   const selectedIndex = stops.findIndex((stop) => stop.id === selected);
+  const route = presentationRouteForStops(stops);
   const center = position || origin || stops[0]?.position;
   if (!center) return <div className="driver-map-tile-error" role="status">A rota ainda não possui coordenadas cadastradas.</div>;
   return <>
     <MapContainer center={center} zoom={14} className="driver-interactive-map" scrollWheelZoom={false} zoomControl={false}>
       <ComfyMapLayer />
-      {stops.length > 1 && <Polyline positions={stops.map((stop) => stop.position)} pathOptions={{ color: '#004aad', weight: 5, opacity: .9 }} />}
+      {route?.legs.map((leg, index) => <Polyline key={index} positions={leg} pathOptions={{ color: complete || index < selectedIndex ? '#8099bd' : '#004aad', weight: 5, opacity: .9 }} />)}
       {position && <Marker position={position} icon={VanIcon} title="Posição da van"><Popup>Posição da van</Popup></Marker>}
       {stops.map((stop, index) => <Marker key={stop.id} position={stop.position} icon={stopIcon(index + 1, complete || index < selectedIndex ? 'done' : index === selectedIndex ? 'current' : 'pending')} title={stop.name} zIndexOffset={index === selectedIndex ? 500 : 0}>
         <Popup><strong>{stop.name}</strong><br />{stop.kind === 'destination' ? 'Destino' : 'Ponto de embarque'}</Popup>
       </Marker>)}
-      <MapControls origin={center} position={position} stops={stops} sheetLevel={sheetLevel} />
+      <MapControls origin={center} position={position} stops={stops} path={route?.path} sheetLevel={sheetLevel} />
     </MapContainer>
   </>;
 }
