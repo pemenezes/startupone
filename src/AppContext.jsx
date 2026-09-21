@@ -3,6 +3,7 @@ import { useAuth } from './auth-context';
 import { AppContext } from './app-context';
 import { driverUser as initialDriver, employeeUser as initialEmployee, regions as initialRegions } from './data/mockData';
 import { adjustEmployeeCredits, fetchCreditBalance } from './lib/credits';
+import { isDemoId } from './lib/demoAccess';
 
 const seedEmployee = {
   ...initialEmployee,
@@ -78,7 +79,7 @@ export function AppProvider({ children }) {
 
   const updateWalletBalance = async (employeeId, amount, title) => {
     // Persist for real logged-in employees (UUID from Supabase)
-    const isUuid = typeof employeeId === 'string' && employeeId.includes('-') && employeeId.length > 30;
+    const isUuid = typeof employeeId === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(employeeId) && !isDemoId(employeeId);
 
     if (isUuid) {
       const result = await adjustEmployeeCredits(employeeId, amount, title);
@@ -102,7 +103,7 @@ export function AppProvider({ children }) {
 
   const reloadWallet = async (employeeId) => {
     const id = employeeId || activeEmployeeId;
-    if (!id || !String(id).includes('-')) return;
+    if (!id || isDemoId(id) || !String(id).includes('-')) return;
     const data = await fetchCreditBalance(id);
     applyLocalBalance(id, data.balance, data.lastTopUp);
     return data;

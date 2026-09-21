@@ -1,10 +1,18 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Building2, User, Car } from 'lucide-react';
 import ComfyBrand from '../components/ComfyBrand';
+import { updatePresentationJourney } from '../lib/presentationMobility';
+import { resetDemoPreferences } from '../lib/demoAccess';
 
 export default function Login() {
   const navigate = useNavigate();
+  const [resetDone, setResetDone] = useState(false);
+  const resetPresentation = () => {
+    updatePresentationJourney({ type: 'restart' });
+    resetDemoPreferences();
+    setResetDone(true);
+  };
 
   return (
     <div
@@ -75,6 +83,11 @@ export default function Login() {
           </div>
         </button>
       </div>
+
+      <button type="button" className="btn btn-outline" style={{ margin: '1rem auto 0', maxWidth: '380px' }} onClick={resetPresentation}>
+        Reiniciar apresentação
+      </button>
+      {resetDone && <p role="status" style={{ textAlign: 'center', color: 'var(--success)', margin: '0.5rem 0 0' }}>Apresentação reiniciada.</p>}
 
       <p style={{ textAlign: 'center', marginTop: '2rem', fontSize: '0.95rem' }}>
         Não tem uma conta?{' '}

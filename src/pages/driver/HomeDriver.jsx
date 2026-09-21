@@ -7,6 +7,9 @@ import { formatDriverDate } from '../../lib/driverSchedule';
 import { formatJourneyTime } from '../../lib/driverJourneys';
 import { attendanceCounts } from '../../lib/driverAttendanceState';
 import { DriverEmpty, DriverError, DriverLoading } from './DriverUI';
+import { useAuth } from '../../auth-context';
+import { readPresentationJourney, subscribePresentationJourney, PRESENTATION_ROUTE, PRESENTATION_STOPS, presentationPassengers, updatePresentationJourney } from '../../lib/presentationMobility';
+import { useSyncExternalStore } from 'react';
 
 function FinishJourneyDialog({ onClose, onConfirm, loading, pendingCount, attendanceUnavailable }) {
   const dialog = useRef(null);
@@ -115,6 +118,21 @@ function OperationCard() {
 }
 
 export default function HomeDriver() {
+  const { isDemo } = useAuth();
+  if (isDemo) return <DemoJourney />;
+  return <LiveJourney />;
+}
+
+function DemoJourney() {
+  const state = useSyncExternalStore(subscribePresentationJourney, readPresentationJourney, readPresentationJourney);
+  const passengers = presentationPassengers(state);
+  return <div className="page-transition driver-stack"><div><h1>Sua jornada</h1><p>Centro e arredores · {PRESENTATION_ROUTE.name}</p></div>
+    <section className="card driver-stack"><span className="driver-badge">Rota de hoje</span><h2>{PRESENTATION_ROUTE.name}</h2><p>{PRESENTATION_ROUTE.vehicle} · {PRESENTATION_STOPS.length} paradas</p><Link className="btn btn-primary" to="/driver">Abrir mapa da rota</Link></section>
+    <section className="card driver-stack"><span className="eyebrow">Operação de hoje</span><h2>{state.completed ? 'Jornada concluída' : state.started ? 'Jornada em andamento' : 'Jornada prevista'}</h2><p>{passengers.filter((person) => person.status === 'boarded').length} embarcados · {passengers.filter((person) => person.status === 'absent').length} ausentes · {passengers.filter((person) => person.status === 'expected').length} aguardando</p>{!state.started && <button className="btn btn-primary" type="button" onClick={() => updatePresentationJourney({ type: 'start' })}>Iniciar jornada</button>}<Link className="btn btn-outline" to="/driver/passengers">Ver passageiros</Link></section>
+  </div>;
+}
+
+function LiveJourney() {
   const { journey, passengers, attendance, assignment, status, day, operationState } = useDriver();
   const route = assignment?.route;
   const persisted = operationState === 'in_progress' || operationState === 'completed';

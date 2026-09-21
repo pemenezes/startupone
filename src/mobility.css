@@ -4,7 +4,10 @@
 .mobility-page { width: 100%; }
 .mobility-stage { position: relative; height: 100svh; min-height: 500px; overflow: hidden; background: var(--brand-support); }
 .mobility-map, .mobility-map .driver-interactive-map { height: 100%; width: 100%; border: 0; border-radius: 0; }
-.mobility-map .leaflet-tile-pane { filter: saturate(.62) brightness(1.07); }
+.mobility-stage .leaflet-bottom { bottom: max(30svh, 205px); }
+.mobility-stage:has(.trip-sheet.is-compact) .leaflet-bottom { bottom: max(15svh, 116px); }
+.mobility-stage:has(.trip-sheet.is-expanded) .leaflet-bottom { bottom: max(72svh, 340px); }
+.mobility-stage .leaflet-control-attribution { max-width: min(90vw, 440px); font-size: 9px; }
 .mobility-map-top { position: absolute; top: max(16px, env(safe-area-inset-top)); left: 16px; right: 76px; z-index: 1001; display: flex; align-items: center; gap: .65rem; pointer-events: none; }
 .mobility-map-top > * { pointer-events: auto; }
 .mobility-back, .mobility-map-top .back-link { display: grid; place-items: center; flex: 0 0 44px; width: 44px; height: 44px; margin: 0; padding: 0; border: 0; border-radius: 50%; background: white; color: var(--brand-primary-deep); box-shadow: 0 5px 18px rgb(0 36 84 / .14); cursor: pointer; font-size: 0; }
@@ -58,5 +61,4 @@
 .employee-map-notifications__unread { position: absolute; top: 8px; right: 8px; width: 7px; height: 7px; border-radius: 50%; background: var(--danger); }
 .employee-map-notifications-backdrop { z-index: 1005 !important; }
 .employee-map-notifications-panel { position: absolute; top: calc(max(16px, env(safe-area-inset-top)) + 60px); left: 0; right: 0; z-index: 1006; }
-.driver-map-van span { display: grid; place-items: center; width: 38px; height: 38px; border: 4px solid white; border-radius: 50%; background: var(--primary); color: white; box-shadow: 0 0 0 6px rgb(0 74 173 / .16), 0 4px 12px rgb(0 36 84 / .3); font-size: 13px; }
 @media (max-height: 650px) { .mobility-stage { min-height: 430px; } .trip-sheet { min-height: 205px; } .trip-sheet.is-compact { min-height: 110px; } .trip-sheet.is-expanded { height: 80svh; } }

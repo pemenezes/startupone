@@ -29,7 +29,7 @@ const ROLE_UI = {
 export default function LoginForm() {
   const { role: roleParam } = useParams();
   const navigate = useNavigate();
-  const { signIn } = useAuth();
+  const { signIn, enterDemo } = useAuth();
 
   const expectedRole = ROLE_BY_LOGIN_PATH[roleParam];
   const ui = ROLE_UI[roleParam];
@@ -38,12 +38,25 @@ export default function LoginForm() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [accountLogin, setAccountLogin] = useState(false);
 
   if (!expectedRole || !ui) {
     return <Navigate to="/login" replace />;
   }
 
   const Icon = ui.icon;
+
+  const handleDemo = async () => {
+    setError('');
+    setSubmitting(true);
+    try {
+      const result = await enterDemo(expectedRole);
+      if (result.error) setError(result.error);
+      else navigate(HOME_BY_ROLE[expectedRole], { replace: true });
+    } catch {
+      setError('Não foi possível abrir este perfil. Tente novamente.');
+    } finally { setSubmitting(false); }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -112,11 +125,21 @@ export default function LoginForm() {
               fontSize: '0.95rem',
             }}
           >
-            Digite seu e-mail e senha para continuar.
+            {accountLogin ? 'Digite seu e-mail e senha para continuar.' : 'Acesse a experiência Comfy em um toque.'}
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        {!accountLogin && <div style={{ display: 'grid', gap: '1rem' }}>
+          {error && <div role="alert" style={{ backgroundColor: 'var(--danger-light)', color: 'var(--danger)', border: '1px solid #f4c7c3', borderRadius: 'var(--radius-md)', padding: '0.75rem 1rem', fontSize: '0.85rem' }}>{error}</div>}
+          <button type="button" className="btn btn-primary" disabled={submitting} onClick={handleDemo}>
+            {submitting ? 'Entrando...' : 'Entrar'}
+          </button>
+          <button type="button" className="btn btn-outline" onClick={() => { setAccountLogin(true); setError(''); }}>
+            Entrar com minha conta
+          </button>
+        </div>}
+
+        {accountLogin && <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           <label style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
             <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>E-mail</span>
             <input
@@ -191,9 +214,11 @@ export default function LoginForm() {
           >
             {submitting ? 'Entrando...' : 'Entrar'}
           </button>
-        </form>
+        </form>}
 
-        {(roleParam === 'employee' || roleParam === 'driver') && (
+        {accountLogin && <button type="button" onClick={() => { setAccountLogin(false); setError(''); }} style={{ display: 'block', margin: '1rem auto 0', background: 'none', border: 0, color: 'var(--primary)', fontWeight: 600, cursor: 'pointer' }}>Voltar ao acesso rápido</button>}
+
+        {accountLogin && (roleParam === 'employee' || roleParam === 'driver') && (
           <p style={{ textAlign: 'center', marginTop: '1.5rem', fontSize: '0.9rem' }}>
             Não tem uma conta?{' '}
             <Link to={`/register/${roleParam}`} style={{ color: 'var(--primary)', fontWeight: 600 }}>

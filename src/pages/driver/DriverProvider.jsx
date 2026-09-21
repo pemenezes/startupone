@@ -17,7 +17,7 @@ import { confirmJourneyStop, fetchJourneyStopArrivals, fetchRouteStops } from '.
 import { DriverContext } from './driver-context';
 import { useDriverResource } from './useDriverResource';
 
-export default function DriverProvider({ children }) {
+function LiveDriverProvider({ children }) {
   const { profile } = useAuth();
   const [operationAction, setOperationAction] = useState({ loading: false, error: null });
   const [attendanceAction, setAttendanceAction] = useState({ loading: false, error: null });
@@ -125,4 +125,25 @@ export default function DriverProvider({ children }) {
       {children}
     </DriverContext.Provider>
   );
+}
+
+const localResource = (data) => ({ data, loading: false, error: null, refresh: () => {} });
+
+function DemoDriverProvider({ children }) {
+  const day = todayISO();
+  return <DriverContext.Provider value={{
+    journey: localResource({ assignment: null, status: 'scheduled' }),
+    passengers: localResource([]), assignment: null, status: 'scheduled', day,
+    operation: localResource(null), operationState: 'planned',
+    operationAction: { loading: false, error: null },
+    attendance: localResource([]), stops: localResource([]), arrivals: localResource([]),
+    attendanceAction: { loading: false, error: null },
+    startJourney: async () => null, finishJourney: async () => null,
+    recordAttendance: async () => null, confirmStop: async () => null,
+  }}>{children}</DriverContext.Provider>;
+}
+
+export default function DriverProvider({ children }) {
+  const { isDemo } = useAuth();
+  return isDemo ? <DemoDriverProvider>{children}</DemoDriverProvider> : <LiveDriverProvider>{children}</LiveDriverProvider>;
 }
