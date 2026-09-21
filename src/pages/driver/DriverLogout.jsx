@@ -4,7 +4,7 @@ import { LogOut } from 'lucide-react';
 import { useAuth } from '../../auth-context';
 
 export default function DriverLogout({ compact = false }) {
-  const { signOut } = useAuth();
+  const { signOut, isDemo } = useAuth();
   const navigate = useNavigate();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -13,7 +13,7 @@ export default function DriverLogout({ compact = false }) {
     setError('');
     try {
       await signOut();
-      navigate('/login/driver', { replace: true });
+      navigate(isDemo ? '/login' : '/login/driver', { replace: true });
     } catch {
       setError('Não foi possível sair. Tente novamente.');
       setBusy(false);

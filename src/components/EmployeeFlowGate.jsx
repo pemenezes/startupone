@@ -8,7 +8,7 @@ import { useTrip } from '../TripContext';
  */
 export default function EmployeeFlowGate({ children }) {
   const location = useLocation();
-  const { profile } = useAuth();
+  const { profile, isDemo } = useAuth();
   const { loading, onboardingComplete, hasSubscription, hasActiveTrip, todayRides } = useTrip();
 
   const path = location.pathname;
@@ -16,6 +16,13 @@ export default function EmployeeFlowGate({ children }) {
   const presentationPath = path === '/employee' || path === '/employee/track' ||
     path === '/employee/profile' || path === '/employee/route-settings' ||
     path.startsWith('/employee/credits');
+
+  if (isDemo) {
+    if (path === '/employee/onboarding/company' || path === '/employee/onboarding/addresses' || path === '/employee/onboarding/region') {
+      return <Navigate to="/employee/route-settings" replace />;
+    }
+    return children;
+  }
 
   if (loading && !isOnboarding && !presentationPath) {
     return (

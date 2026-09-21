@@ -39,7 +39,7 @@ async function fetchDepartment(userId) {
 export default function Profile() {
   const navigate = useNavigate();
   const { currentEmployee } = useAppContext();
-  const { profile, signOut } = useAuth();
+  const { profile, signOut, isDemo } = useAuth();
   const [companyName, setCompanyName] = useState('');
   const [department, setDepartment] = useState('Não informado');
 
@@ -50,6 +50,7 @@ export default function Profile() {
 
   useEffect(() => {
     let cancelled = false;
+    if (isDemo) { Promise.resolve().then(() => { if (!cancelled) setCompanyName('TechCorp S.A.'); }); return () => { cancelled = true; }; }
     const companyId = profile?.company_id;
     if (!companyId) {
       Promise.resolve().then(() => { if (!cancelled) setCompanyName(''); });
@@ -68,10 +69,11 @@ export default function Profile() {
     return () => {
       cancelled = true;
     };
-  }, [profile?.company_id]);
+  }, [profile?.company_id, isDemo]);
 
   useEffect(() => {
     let cancelled = false;
+    if (isDemo) { Promise.resolve().then(() => { if (!cancelled) setDepartment('Tecnologia'); }); return () => { cancelled = true; }; }
     fetchDepartment(profile?.id).then((value) => {
       if (cancelled) return;
       setDepartment(value?.trim() ? value.trim() : 'Não informado');
@@ -79,7 +81,7 @@ export default function Profile() {
     return () => {
       cancelled = true;
     };
-  }, [profile?.id]);
+  }, [profile?.id, isDemo]);
 
   const configItems = [
     { label: 'Minha rota fixa', icon: <Map size={18} color="var(--primary)" />, path: '/employee/route-settings', badge: chosenRoute?.code },

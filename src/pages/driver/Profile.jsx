@@ -14,15 +14,16 @@ function ProfileRow({ to, Icon, title, detail }) {
 }
 
 export default function Profile() {
-  const { profile, user } = useAuth();
+  const { profile, user, isDemo } = useAuth();
   const { assignment, journey } = useDriver();
   const load = useCallback(async () => {
+    if (isDemo) return vehicleFallback;
     const { data, error } = await supabase.from('drivers')
       .select('vehicle_model, vehicle_plate, vehicle_color, vehicle_capacity, rating_average, rating_count')
       .eq('id', profile.id).maybeSingle();
     if (error) throw error;
     return data;
-  }, [profile.id]);
+  }, [profile.id, isDemo]);
   const resource = useDriverResource(load);
   const driver = resource.data || vehicleFallback;
   const routeName = !journey.error && assignment?.route?.name || 'Centro → Campus Comfy';

@@ -9,7 +9,7 @@ import { fetchRegisteredDrivers, submitDriverReview } from '../../lib/drivers';
 export default function ReviewDriver() {
   const navigate = useNavigate();
   const { currentEmployee } = useAppContext();
-  const { profile, user } = useAuth();
+  const { profile, user, isDemo } = useAuth();
   const { activeTrip } = useTrip();
   const route = activeTrip?.route || currentEmployee.activeRoute;
 
@@ -30,7 +30,7 @@ export default function ReviewDriver() {
       setLoading(true);
       setLoadError('');
       try {
-        const list = await fetchRegisteredDrivers();
+        const list = isDemo ? [{ id: 'demo-driver', name: 'Carlos Roberto', vehicle: { model: 'Mercedes-Benz Sprinter', plate: 'ABC-1D23', color: 'Branca', capacity: 15 }, rating: { average: 4.9, totalReviews: 48 } }] : await fetchRegisteredDrivers();
         if (cancelled) return;
         setDrivers(list);
 
@@ -57,7 +57,7 @@ export default function ReviewDriver() {
     return () => {
       cancelled = true;
     };
-  }, [route?.driver, route?.driver_id, route?.driver?.id, route?.driver?.name]);
+  }, [route?.driver, route?.driver_id, route?.driver?.id, route?.driver?.name, isDemo]);
 
   const selectedDriver = useMemo(
     () => drivers.find((d) => d.id === selectedDriverId) || null,
@@ -73,7 +73,7 @@ export default function ReviewDriver() {
     setSubmitting(true);
     setSubmitError('');
     try {
-      await submitDriverReview({
+      if (!isDemo) await submitDriverReview({
         driverId: selectedDriver.id,
         employeeId,
         rating,

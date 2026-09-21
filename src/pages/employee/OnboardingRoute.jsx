@@ -10,7 +10,7 @@ import { updatePresentationJourney } from '../../lib/presentationMobility';
 
 export default function OnboardingRoute({ mode = 'onboarding' }) {
   const navigate = useNavigate();
-  const { profile } = useAuth();
+  const { profile, isDemo } = useAuth();
   const { selectRoute, subscriptions } = useTrip();
   const initialChoice = readEmployeeRoutePreferences(profile?.id);
   const [routes, setRoutes] = useState([]);
@@ -23,6 +23,7 @@ export default function OnboardingRoute({ mode = 'onboarding' }) {
 
   useEffect(() => {
     let cancelled = false;
+    if (isDemo) { Promise.resolve().then(() => { if (!cancelled) setLoading(false); }); return () => { cancelled = true; }; }
     if (mode === 'settings' && (!profile?.company_id || !profile?.region_id)) {
       Promise.resolve().then(() => { if (!cancelled) setLoading(false); });
       return () => { cancelled = true; };
@@ -50,7 +51,7 @@ export default function OnboardingRoute({ mode = 'onboarding' }) {
     return () => {
       cancelled = true;
     };
-  }, [profile?.company_id, profile?.region_id, navigate, mode]);
+  }, [profile?.company_id, profile?.region_id, navigate, mode, isDemo]);
 
   const filtered = useMemo(
     () => [...EMPLOYEE_ROUTE_OPTIONS, ...routes.filter((route) => !EMPLOYEE_ROUTE_OPTIONS.some((option) => option.name === route.name))]

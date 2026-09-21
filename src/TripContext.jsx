@@ -12,7 +12,7 @@ import { todayISO } from './lib/schedule';
 const TripContext = createContext(null);
 
 export function TripProvider({ children }) {
-  const { profile, role } = useAuth();
+  const { profile, role, isDemo } = useAuth();
   const profileId = profile?.id;
   const [subscriptions, setSubscriptions] = useState([]);
   const [todayRides, setTodayRides] = useState([]);
@@ -21,7 +21,7 @@ export function TripProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   const refreshTrip = useCallback(async () => {
-    if (!profileId || role !== 'employee') {
+    if (!profileId || role !== 'employee' || isDemo) {
       setSubscriptions([]);
       setTodayRides([]);
       setJourneyStatuses([]);
@@ -59,29 +59,31 @@ export function TripProvider({ children }) {
     } finally {
       setLoading(false);
     }
-  }, [profileId, role]);
+  }, [profileId, role, isDemo]);
 
   useEffect(() => {
     refreshTrip();
   }, [refreshTrip]);
 
   useEffect(() => {
-    if (role !== 'employee') return undefined;
+    if (role !== 'employee' || isDemo) return undefined;
     const timer = window.setInterval(refreshTrip, 30000);
     window.addEventListener('focus', refreshTrip);
     return () => {
       window.clearInterval(timer);
       window.removeEventListener('focus', refreshTrip);
     };
-  }, [refreshTrip, role]);
+  }, [refreshTrip, role, isDemo]);
 
   const selectRoute = async (routeId, weekdays) => {
+    if (isDemo) return null;
     if (!profile?.id) throw new Error('Usuário não autenticado');
     await upsertSubscription(profile.id, routeId, weekdays);
     return refreshTrip();
   };
 
   const cancelTrip = async (routeId) => {
+    if (isDemo) return true;
     if (!profile?.id || !routeId) return null;
     await cancelTodayForSubscription(profile.id, routeId);
     await refreshTrip();

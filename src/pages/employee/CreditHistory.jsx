@@ -4,11 +4,12 @@ import { ArrowLeft } from 'lucide-react';
 import { useAppContext } from '../../app-context';
 import { useAuth } from '../../auth-context';
 import { fetchCreditTransactions } from '../../lib/credits';
+import { adminCreditTransactions } from '../../data/presentationCompanyData';
 
 export default function CreditHistory() {
   const navigate = useNavigate();
   const { currentEmployee } = useAppContext();
-  const { profile } = useAuth();
+  const { profile, isDemo } = useAuth();
   const employeeId = profile?.id || currentEmployee.id;
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -16,6 +17,11 @@ export default function CreditHistory() {
   useEffect(() => {
     let cancelled = false;
     (async () => {
+      if (isDemo) {
+        setHistory(adminCreditTransactions.filter((row) => row.employeeId === 'E101').map((row) => ({ id: row.id, title: row.title, date: new Date(`${row.date}T12:00:00`).toLocaleDateString('pt-BR'), amount: row.amount, type: row.amount >= 0 ? 'secondary' : 'danger' })));
+        setLoading(false);
+        return;
+      }
       if (!employeeId || !String(employeeId).includes('-')) {
         setLoading(false);
         return;
@@ -41,7 +47,7 @@ export default function CreditHistory() {
     return () => {
       cancelled = true;
     };
-  }, [employeeId]);
+  }, [employeeId, isDemo]);
 
   return (
     <div className="page-transition">

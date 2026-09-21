@@ -43,7 +43,7 @@ function Message({ tone, children }) {
 
 export default function AccountSecurity() {
   const navigate = useNavigate();
-  const { profile, changePassword, changeEmail, updateDisplayName } = useAuth();
+  const { profile, changePassword, changeEmail, updateDisplayName, isDemo } = useAuth();
 
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -161,7 +161,7 @@ export default function AccountSecurity() {
           <Lock size={24} color="var(--primary)" /> Segurança da conta
         </h1>
         <p style={{ margin: 0, color: 'var(--text-secondary)' }}>
-          Altere senha, e-mail e dados básicos da sua conta.
+          {isDemo ? 'Consulte e personalize os dados exibidos neste acesso.' : 'Altere senha, e-mail e dados básicos da sua conta.'}
         </p>
       </div>
 
@@ -174,7 +174,7 @@ export default function AccountSecurity() {
         </p>
       </div>
 
-      <form className="card" onSubmit={handlePassword} style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+      {!isDemo && <form className="card" onSubmit={handlePassword} style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
         <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1.05rem' }}>
           <Lock size={18} color="var(--primary)" /> Trocar senha
         </h3>
@@ -215,9 +215,9 @@ export default function AccountSecurity() {
         <button type="submit" className="btn btn-primary" disabled={passwordBusy}>
           {passwordBusy ? 'Salvando...' : 'Atualizar senha'}
         </button>
-      </form>
+      </form>}
 
-      <form className="card" onSubmit={handleEmail} style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+      {!isDemo && <form className="card" onSubmit={handleEmail} style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
         <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1.05rem' }}>
           <Mail size={18} color="var(--primary)" /> Trocar e-mail
         </h3>
@@ -239,7 +239,7 @@ export default function AccountSecurity() {
         <button type="submit" className="btn btn-primary" disabled={emailBusy}>
           {emailBusy ? 'Enviando...' : 'Solicitar troca de e-mail'}
         </button>
-      </form>
+      </form>}
 
       <form className="card" onSubmit={handleName} style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
         <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1.05rem' }}>

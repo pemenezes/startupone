@@ -8,6 +8,14 @@ import { directionLabel } from '../../lib/schedule';
 import { useDriver } from './driver-context';
 import { useDriverResource } from './useDriverResource';
 import { DriverBack, DriverEmpty, DriverError, DriverLoading } from './DriverUI';
+import { adminRoutes } from '../../data/presentationCompanyData';
+
+function DemoClaimRoute() {
+  const route = adminRoutes[0];
+  return <div className="page-transition driver-stack"><DriverBack to="/driver/profile">Voltar ao perfil</DriverBack><h1>Minha rota</h1><p>Consulte o trajeto atribuído para a operação de hoje.</p>
+    <article className="card driver-stack"><span className="driver-badge">Rota atual</span><h2>{route.name}</h2><p>{route.region} · Saída {route.departure}</p><p>{route.vehicle} · {route.capacity} lugares</p><Link className="btn btn-primary" to="/driver">Abrir rota no mapa</Link></article>
+  </div>;
+}
 
 function CompanyRoutes({ companyId, onBusy }) {
   const { profile } = useAuth();
@@ -60,6 +68,11 @@ function CompanyRoutes({ companyId, onBusy }) {
 }
 
 export default function ClaimRoute() {
+  const { isDemo } = useAuth();
+  return isDemo ? <DemoClaimRoute /> : <LiveClaimRoute />;
+}
+
+function LiveClaimRoute() {
   const { operation, operationState } = useDriver();
   const companies = useDriverResource(fetchCompanies);
   const [companyId, setCompanyId] = useState('');

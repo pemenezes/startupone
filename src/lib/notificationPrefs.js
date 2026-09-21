@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { isDemoId } from './demoAccess';
 
 export const DEFAULT_NOTIFICATION_PREFS = {
   penalties: true,
@@ -68,6 +69,7 @@ export async function fetchNotificationPrefs(userId) {
   if (!userId) return { ...DEFAULT_NOTIFICATION_PREFS };
 
   const local = readLocalNotificationPrefs(userId);
+  if (isDemoId(userId)) return local;
 
   const { data, error } = await supabase
     .from('profiles')
@@ -87,7 +89,7 @@ export async function saveNotificationPrefs(userId, prefs) {
   const next = mergePrefs(prefs);
   writeLocalNotificationPrefs(userId, next);
 
-  if (!userId) return next;
+  if (!userId || isDemoId(userId)) return next;
 
   const { error } = await supabase
     .from('profiles')

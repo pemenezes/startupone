@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from './lib/supabase';
 import { AuthContext, ROLE_BY_REGISTER_PATH } from './auth-context';
+import { clearDemoRole, DEMO_PROFILES, demoSession, readDemoRole, writeDemoRole } from './lib/demoAccess';
 
 const ROLE_LABELS = {
   employee: 'funcionário',
@@ -25,6 +26,8 @@ export function AuthProvider({ children }) {
   const [session, setSession] = useState(null);
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [demoRole, setDemoRole] = useState(readDemoRole);
+  const [demoProfile, setDemoProfile] = useState(null);
 
   useEffect(() => {
     let mounted = true;
@@ -93,6 +96,9 @@ export function AuthProvider({ children }) {
   }, []);
 
   const signIn = async (email, password, expectedRole) => {
+    clearDemoRole();
+    setDemoRole(null);
+    setDemoProfile(null);
     const normalizedEmail = email.trim().toLowerCase();
     const { data, error } = await supabase.auth.signInWithPassword({
       email: normalizedEmail,
@@ -178,6 +184,12 @@ export function AuthProvider({ children }) {
   };
 
   const signOut = async () => {
+    if (demoRole) {
+      clearDemoRole();
+      setDemoRole(null);
+      setDemoProfile(null);
+      return;
+    }
     const { error } = await supabase.auth.signOut();
     if (error) throw error;
     setSession(null);
@@ -269,6 +281,10 @@ export function AuthProvider({ children }) {
     if (!trimmed) {
       return { error: 'Informe um nome.' };
     }
+    if (demoRole) {
+      setDemoProfile({ ...(demoProfile || DEMO_PROFILES[demoRole]), full_name: trimmed });
+      return { error: null };
+    }
     const userId = session?.user?.id;
     if (!userId) {
       return { error: 'Sessão inválida. Entre novamente.' };
@@ -299,6 +315,7 @@ export function AuthProvider({ children }) {
   };
 
   const refreshProfile = async () => {
+    if (demoRole) return demoProfile || DEMO_PROFILES[demoRole];
     const userId = session?.user?.id;
     if (!userId) return null;
     const nextProfile = await fetchProfile(userId);
@@ -306,12 +323,26 @@ export function AuthProvider({ children }) {
     return nextProfile;
   };
 
+  const enterDemo = async (role) => {
+    if (!Object.hasOwn(DEMO_PROFILES, role)) return { error: 'Perfil inválido.' };
+    // Remove a previously authenticated account from this browser before showing local data.
+    if (session?.user) await supabase.auth.signOut({ scope: 'local' });
+    writeDemoRole(role);
+    setDemoProfile(null);
+    setDemoRole(role);
+    return { error: null, profile: DEMO_PROFILES[role] };
+  };
+
+  const visibleProfile = demoRole ? (demoProfile || DEMO_PROFILES[demoRole]) : profile;
+  const visibleSession = demoRole ? demoSession(demoRole) : session;
   const value = {
-    session,
-    user: session?.user ?? null,
-    profile,
-    role: profile?.role ?? null,
-    loading,
+    session: visibleSession,
+    user: visibleSession?.user ?? null,
+    profile: visibleProfile,
+    role: visibleProfile?.role ?? null,
+    loading: demoRole ? false : loading,
+    isDemo: Boolean(demoRole),
+    enterDemo,
     signIn,
     signUp,
     signOut,
@@ -321,8 +352,8 @@ export function AuthProvider({ children }) {
     changeEmail,
     updateDisplayName,
     refreshProfile,
-    setProfile,
-    isAuthenticated: Boolean(session?.user),
+    setProfile: demoRole ? setDemoProfile : setProfile,
+    isAuthenticated: Boolean(visibleSession?.user),
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
