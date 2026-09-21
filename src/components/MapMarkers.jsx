@@ -13,7 +13,12 @@ const createIcon = (iconElement, bgColor) => {
   });
 };
 
-export const VanIcon = createIcon(<Car size={16} fill="white" />, 'var(--primary)');
+export const VanIcon = new L.DivIcon({
+  html: `<span><img src="${import.meta.env.BASE_URL}brand/comfy-van.png" alt="" /></span>`,
+  className: 'comfy-map-van',
+  iconSize: [42, 42],
+  iconAnchor: [21, 21],
+});
 export const AlertVanIcon = createIcon(<Car size={16} fill="white" />, 'var(--danger)');
 export const PointIcon = createIcon(<MapPin size={16} fill="white" />, 'var(--secondary)');
 export const UserIcon = createIcon(<Navigation size={16} fill="white" style={{ transform: 'rotate(45deg)' }} />, 'var(--secondary)');
